@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<project name="JsonRPC in CPP using libjson-rpc-cpp" default="targets">
+   <taskdef resource="cpptasks.tasks"/>
+   <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+   <property name="src.dir" value="src"/>
+   <property name="classes.dir" value="classes"/>
+   <property name="host.name" value="127.0.0.1"/>
+   <property name="port.num" value="8080"/>
+   <property name="json.file.name" value="StudentLibraryMethods.json"/>
+   <property environment="env"/>
+   <!--Set the ostype property: <property name="ostype" value="${env.OSTYPE}"/>-->
+    <condition property="ostype" value="${env.OSTYPE}">
+        <isset property="env.OSTYPE" />
+    </condition>
+    <condition property="ostype" value="env.OSTYPE_inaccessable">
+        <not>
+            <isset property="env.OSTYPE" />
+        </not>
+    </condition>
+
+   <target name="targets">
+      <echo message="Targets are clean, prepare, build.all, build.server, build.client, targets"/>
+      <echo message="base directory is: ${basedir}"/>
+      <echo message="ostype is ${ostype}"/>
+      <echo message="invoke java tcp server with: java -cp classes:lib/json.jar ser321.tcpjsonrpc.server.StudentCollectionTCPJsonRPCServer ${port.num}"/>
+      <echo message="invoke java client with: java -cp classes:lib/json.jar ser321.tcpjsonrpc.StudentCollectionClient ${host.name} ${port.num}"/>
+   </target>
+
+   <path id="compile.classpath">
+      <pathelement location="${classes.dir}"/>
+      <fileset dir="${basedir}/lib">
+         <include name="json.jar"/>
+      </fileset>
+   </path>
+
+   <target name="clean">
+      <delete dir="${classes.dir}" failonerror="false"/>
+   </target>
+
+   <target name="prepare">
+      <mkdir dir="${classes.dir}"/>
+   </target>
+
+   <target name="build.all"
+           depends="clean,prepare,build.server,build.client"
+           description="Clean then build java server, and java client"/>
+
+   <target name="build.server" depends="prepare"
+          description="Compile Java server sources">
+     <!-- Compile Java server classes as necessary -->
+     <echo message="tcp server: java -cp classes:lib/json.jar ser321.tcpjsonrpc.server.StudentCollectionTCPJsonRPCServer ${port.num}"/>
+     <javac srcdir="${src.dir}/java/server"
+            destdir="${classes.dir}"
+            includeantruntime="false">
+        <classpath refid="compile.classpath"/>
+    </javac>
+   </target>
+   
+   <target name="build.client" depends="build.server"
+          description="Compile Java client sources">
+     <!-- Compile Java classes as necessary -->
+     <echo message="execute client: java -cp classes:lib/json.jar ser321.tcpjsonrpc.StudentCollectionClient ${host.name} ${port.num}"/>
+     <javac srcdir="${src.dir}/java/client"
+            destdir="${classes.dir}"
+            includeantruntime="false">
+        <classpath refid="compile.classpath"/>
+     </javac>
+   </target>
+
+</project>

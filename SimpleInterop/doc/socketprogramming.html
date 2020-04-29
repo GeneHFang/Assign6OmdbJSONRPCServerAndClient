@@ -1,0 +1,1709 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title></title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<!-- html --> 
+<meta name="src" content="socketprogramming.tex"> 
+<meta name="date" content="2012-04-02 11:48:00"> 
+<link rel="stylesheet" type="text/css" href="socketprogramming.css"> 
+</head><body 
+>
+<h1 class="likepartHead"><a 
+ id="x1-1000"></a>Dartmouth CS 60 Computer Networks<sup><a href="#fn1" id="ref1">1</a></sup></h1>
+<h1 class="likepartHead"><a 
+ id="x1-2000"></a>Lecture 3 and 4: Socket Programming</h1>
+<!--l. 21--><p class="noindent" >How do we build Internet applications? In this lecture, we will discuss the socket API and support for
+TCP and UDP communications between end hosts. Socket programing is the key API for programming
+distributed applications on the Internet.
+<!--l. 23--><p class="noindent" >BTW, Kurose/Ross only cover Java socket programming and not C socket programming discussed
+below.<br><hr></hr><br>
+<sup id="fn1">1. This material on C-based sockets is copied directly from: <a href="http://www.cs.dartmouth.edu/~campbell/cs60/socketprogramming.html" target="_blank">
+http://www.cs.dartmouth.edu/~campbell/cs60/socketprogramming.html</a> and was developed by <a href="http://www.cs.dartmouth.edu/~campbell/" target="_blank">
+Andrew T. Campbell</a> <a href="#ref1" title="Jump back to footnote 1."><i>back</i></a></sup>
+<br><br><hr></hr>
+<h3 class="likesectionHead"><a 
+ id="x1-4000"></a>Goals</l>
+<!--h3. 27--><p class="noindent" >We plan to learn the following from these lectures:
+     <ul class="itemize1">
+     <li class="itemize">What is a socket?
+     </li>
+     <li class="itemize">The client-server model
+     </li>
+     <li class="itemize">Byte order
+     </li>
+     <li class="itemize">TCP socket API
+     </li>
+     <li class="itemize">UDP socket API
+     </li>
+     <li class="itemize">Concurrent server design</li></ul>
+<!--l. 38--><p class="noindent" >
+                                                                                  
+                                                                                  
+<h3 class="likesectionHead"><a 
+ id="x1-5000"></a>The basics</h3>
+<!--l. 40--><p class="noindent" ><span 
+class="cmbx-10">Program </span>A program is an executable file residing on a disk in a directory. A program is read into
+memory and is executed by the kernel as ad result of an <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">exec()</span></span></span> function. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">exec()</span></span></span> has six variants, but
+we only consider the simplest one (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">exec()</span></span></span>) in this course.
+<!--l. 42--><p class="noindent" ><span 
+class="cmbx-10">Process </span>An executing instance of a program is called a <span 
+class="cmti-10">process</span>. Sometimes, <span 
+class="cmti-10">task </span>is used instead of process
+with the same meaning. UNIX guarantees that every process has a unique identifier called the <span 
+class="cmti-10">process ID</span>.
+The process ID is always a non-negative integer.
+<!--l. 45--><p class="noindent" ><span 
+class="cmbx-10">File descriptors </span>File descriptors are normally small non-negative integers that the kernel uses to identify
+the files being accessed by a particular process. Whenever it opens an existing file or creates a new file, the
+kernel returns a file descriptor that is used to read or write the file. As we will see in this course, sockets
+are based on a very similar mechanism (socket descriptors).
+<!--l. 48--><p class="noindent" >
+<h3 class="likesectionHead"><a 
+ id="x1-6000"></a>The client-server model</h3>
+<!--l. 50--><p class="noindent" >The client-server model is one of the most used communication paradigms in networked systems.
+Clients normally communicates with one server at a time. From a server&#8217;s perspective, at any
+point in time, it is not unusual for a server to be communicating with multiple clients. Client
+need to know of the existence of and the address of the server, but the server does not need
+to know the address of (or even the existence of) the client prior to the connection being
+established
+<!--l. 52--><p class="noindent" >Client and servers communicate by means of multiple layers of network protocols. In this course we will
+focus on the TCP/IP protocol suite.
+<!--l. 54--><p class="noindent" >The scenario of the client and the server on the same local network (usually called LAN, Local Area
+Network) is shown in Figure <a 
+href="#x1-60011">1<!--tex4ht:ref: ethernet --></a>
+<!--l. 57--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                                  
+                                                                                  
+<a 
+ id="x1-60011"></a>
+                                                                                  
+                                                                                  
+<div  
+class="centerline">                                       <img 
+src="ethernet.jpg" alt="PIC"  
+>                                       </div>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;1: </span><span  
+class="content">Client and server on the same Ethernet communicating using TCP/IP.</span></div><!--tex4ht:label?: x1-60011 -->
+                                                                                  
+                                                                                  
+<!--l. 61--><p class="noindent" ></div><hr class="endfigure">
+<!--l. 64--><p class="noindent" >The client and the server may be in different LANs, with both LANs connected to a Wide Area Network
+(WAN) by means of <span 
+class="cmti-10">routers</span>. The largest WAN is the Internet, but companies may have their own WANs.
+This scenario is depicted in Figure <a 
+href="#x1-60022">2<!--tex4ht:ref: wan --></a>.
+<!--l. 66--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                                  
+                                                                                  
+<a 
+ id="x1-60022"></a>
+                                                                                  
+                                                                                  
+<div  
+class="centerline">                                       <img 
+src="wan.jpg" alt="PIC"  
+>                                       </div>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;2: </span><span  
+class="content">Client and server on different LANs connected through WAN/Internet.</span></div><!--tex4ht:label?: x1-60022 -->
+                                                                                  
+                                                                                  
+<!--l. 70--><p class="noindent" ></div><hr class="endfigure">
+<!--l. 73--><p class="noindent" >The flow of information between the client and the server goes down the protocol stack on one side, then
+across the network and then up the protocol stack on the other side.
+<h3 class="likesectionHead"><a 
+ id="x1-7000"></a>User Datagram Protocol (UDP)</h3>
+<!--l. 78--><p class="noindent" ><a 
+ id="udp" > </a>
+<!--l. 80--><p class="noindent" >UDP is a simple transport-layer protocol. The application writes a message to a UDP socket, which is
+then encapsulated in a UDP datagram, which is further encapsulated in an IP datagram, which is sent to
+the destination.
+<!--l. 82--><p class="noindent" >There is no guarantee that a UDP will reach the destination, that the order of the datagrams will be
+preserved across the network or that datagrams arrive only once.
+<!--l. 84--><p class="noindent" >The problem of UDP is its lack of reliability: if a datagram reaches its final destination but the
+checksum detects an error, or if the datagram is dropped in the network, it is not automatically
+retransmitted.
+<!--l. 86--><p class="noindent" >Each UDP datagram is characterized by a length. The length of a datagram is passed to the receiving
+application along with the data.
+<!--l. 88--><p class="noindent" >No connection is established between the client and the server and, for this reason, we say that UDP
+provides a <span 
+class="cmti-10">connection-less service</span>.
+<!--l. 90--><p class="noindent" >It is described in RFC 768.
+<!--l. 92--><p class="noindent" >
+<h3 class="likesectionHead"><a 
+ id="x1-8000"></a>Transmission Control Protocol (TCP)</h3>
+<!--l. 94--><p class="noindent" >TCP provides a <span 
+class="cmti-10">connection oriented service</span>, since it is based on connections between clients and
+servers.
+<!--l. 96--><p class="noindent" >TCP provides reliability. When a TCP client send data to the server, it requires an acknowledgement in
+return. If an acknowledgement is not received, TCP automatically retransmit the data and waits for a
+longer period of time.
+<!--l. 98--><p class="noindent" >We have mentioned that UDP datagrams are characterized by a length. TCP is instead a byte-stream
+protocol, without any boundaries at all.
+<!--l. 100--><p class="noindent" >TCP is described in RFC 793, RFC 1323, RFC 2581 and RFC 3390.
+<!--l. 102--><p class="noindent" ><span 
+class="cmbx-10">Socket addresses</span>
+<!--l. 104--><p class="noindent" >IPv4 socket address structure is named <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockaddr_in</span></span></span> and is defined by including the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;netinet/in.h&#x003E;</span></span></span>
+header.
+                                                                                  
+                                                                                  
+<!--l. 106--><p class="noindent" >The POSIX definition is the following:
+<div 
+class="colorbox" id="colorbox1"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">struct</span><span 
+class="cmtt-10">&#x00A0;in_addr{</span><br />        <span 
+class="cmtt-10">in_addr_t</span><span 
+class="cmtt-10">&#x00A0;s_addr;        /*32</span><span 
+class="cmtt-10">&#x00A0;bit</span><span 
+class="cmtt-10">&#x00A0;IPv4</span><span 
+class="cmtt-10">&#x00A0;network</span><span 
+class="cmtt-10">&#x00A0;byte</span><span 
+class="cmtt-10">&#x00A0;ordered</span><span 
+class="cmtt-10">&#x00A0;address*/</span><br /><span 
+class="cmtt-10">};</span><br /><br /><br /><span 
+class="cmtt-10">struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr_in</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;uint8_t</span><span 
+class="cmtt-10">&#x00A0;sin_len;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;length</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;structure</span><span 
+class="cmtt-10">&#x00A0;(16)*/</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;sa_family_t</span><span 
+class="cmtt-10">&#x00A0;sin_family;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;AF_INET*/</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;in_port_t</span><span 
+class="cmtt-10">&#x00A0;sin_port;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;16</span><span 
+class="cmtt-10">&#x00A0;bit</span><span 
+class="cmtt-10">&#x00A0;TCP</span><span 
+class="cmtt-10">&#x00A0;or</span><span 
+class="cmtt-10">&#x00A0;UDP</span><span 
+class="cmtt-10">&#x00A0;port</span><span 
+class="cmtt-10">&#x00A0;number</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;in_addr</span><span 
+class="cmtt-10">&#x00A0;sin_addr;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;32</span><span 
+class="cmtt-10">&#x00A0;bit</span><span 
+class="cmtt-10">&#x00A0;IPv4</span><span 
+class="cmtt-10">&#x00A0;address*/</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;sin_zero[8];</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;not</span><span 
+class="cmtt-10">&#x00A0;used</span><span 
+class="cmtt-10">&#x00A0;but</span><span 
+class="cmtt-10">&#x00A0;always</span><span 
+class="cmtt-10">&#x00A0;set</span><span 
+class="cmtt-10">&#x00A0;to</span><span 
+class="cmtt-10">&#x00A0;zero</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><span 
+class="cmtt-10">};</span><br /><br /></div></div>
+<!--l. 130--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">uint8_t</span></span></span> datatype is unsigned 8-bit integer.
+<!--l. 132--><p class="noindent" ><span 
+class="cmbx-10">Generic Socket Address Structure</span>
+<!--l. 134--><p class="noindent" >A socket address structure is always passed by reference as an argument to any socket functions. But any
+socket function that takes one of these pointers as an argument must deal with socket address structures
+from any of the supported protocol families.
+<!--l. 136--><p class="noindent" >A problem arises in declaring the type of pointer that is passed. With ANSI C, the solution is to use
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">void</span><span 
+class="cmtt-10">&#x00A0;*</span></span></span> (the generic pointer type). But the socket functions predate the definition of ANSI C and the
+solution chosen was to define a generic socket address as follows:
+<div 
+class="colorbox" id="colorbox2"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;uint8_t</span><span 
+class="cmtt-10">&#x00A0;sa_len;</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;sa_family_t</span><span 
+class="cmtt-10">&#x00A0;sa_family;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;address</span><span 
+class="cmtt-10">&#x00A0;family:</span><span 
+class="cmtt-10">&#x00A0;AD_xxx</span><span 
+class="cmtt-10">&#x00A0;value</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;sa_data[14];</span><br /><span 
+class="cmtt-10">};</span><br /><br /></div></div>
+<!--l. 154--><p class="noindent" >
+<h3 class="likesectionHead"><a 
+ id="x1-9000"></a>Host Byte Order and Network Byte Order Conversion</h3>
+<!--l. 156--><p class="noindent" >There are two ways to store two bytes in memory: with the lower-order byte at the starting
+address (<span 
+class="cmti-10">little-endian </span>byte order) or with the high-order byte at the starting address (<span 
+class="cmti-10">big-endian</span>
+byte order). We call them collectively <span 
+class="cmti-10">host byte order</span>. For example, an Intel processor stores
+the 32-bit integer as four consecutives bytes in memory in the order 1-2-3-4, where 1 is the
+most significant byte. IBM PowerPC processors would store the integer in the byte order
+4-3-2-1.
+<!--l. 158--><p class="noindent" >Networking protocols such as TCP are based on a specific <span 
+class="cmti-10">network byte order</span>. The Internet protocols use
+big-endian byte ordering.
+<!--l. 160--><p class="noindent" ><span 
+class="cmbx-10">The htons(), htonl(), ntohs(), and ntohl() Functions</span>
+<!--l. 162--><p class="noindent" >The follwowing functions are used for the conversion:
+<div 
+class="colorbox" id="colorbox3"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;netinet/in.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">uint16_t</span><span 
+class="cmtt-10">&#x00A0;htons(uint16_t</span><span 
+class="cmtt-10">&#x00A0;host16bitvalue);</span><br /><br /><span 
+class="cmtt-10">uint32_t</span><span 
+class="cmtt-10">&#x00A0;htonl(uint32_t</span><span 
+class="cmtt-10">&#x00A0;host32bitvalue);</span><br /><br /><span 
+class="cmtt-10">uint16_t</span><span 
+class="cmtt-10">&#x00A0;ntohs(uint16_t</span><span 
+class="cmtt-10">&#x00A0;net16bitvalue);</span><br /><br /><span 
+class="cmtt-10">uint32_t</span><span 
+class="cmtt-10">&#x00A0;ntohl(uint32_t</span><span 
+class="cmtt-10">&#x00A0;net32bitvalue);</span><br /><br /></div></div>
+<!--l. 183--><p class="noindent" >The first two return the value in network byte order (16 and 32 bit, respectively). The latter return the
+value in host byte order (16 and 32 bit, respectively).
+<!--l. 185--><p class="noindent" >
+<h3 class="likesectionHead"><a 
+ id="x1-10000"></a>TCP Socket API</h3>
+<!--l. 187--><p class="noindent" >The sequence of function calls for the client and a server participating in a TCP connection is presented in
+Figure <a 
+href="#x1-100013">3<!--tex4ht:ref: TCPsockets --></a>.
+<!--l. 189--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                                  
+                                                                                  
+<a 
+ id="x1-100013"></a>
+                                                                                  
+                                                                                  
+<div  
+class="centerline">                                       <img 
+src="TCPsockets.jpg" alt="PIC"  
+>                                       </div>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;3: </span><span  
+class="content">TCP client-server.</span></div><!--tex4ht:label?: x1-100013 -->
+                                                                                  
+                                                                                  
+<!--l. 193--><p class="noindent" ></div><hr class="endfigure">
+<!--l. 197--><p class="noindent" >As shown in the figure, the steps for establishing a TCP socket on the client side are the
+following:
+     <ul class="itemize1">
+     <li class="itemize">Create a socket using the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">socket()</span></span></span> function;
+     </li>
+     <li class="itemize">Connect the socket to the address of the server using the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">connect()</span></span></span> function;
+     </li>
+     <li class="itemize">Send and receive data by means of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">read()</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">write()</span></span></span> functions.
+     </li>
+     <li class="itemize">Close the connection by means of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">close()</span></span></span> function.</li></ul>
+<!--l. 205--><p class="noindent" >The steps involved in establishing a TCP socket on the server side are as follows:
+     <ul class="itemize1">
+     <li class="itemize">Create a socket with the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">socket()</span></span></span> function;
+     </li>
+     <li class="itemize">Bind the socket to an address using the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">bind()</span></span></span> function;
+     </li>
+     <li class="itemize">Listen for connections with the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">listen()</span></span></span> function;
+     </li>
+     <li class="itemize">Accept a connection with the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">accept()</span></span></span> function system call. This call typically blocks until
+     a client connects with the server.
+     </li>
+     <li class="itemize">Send and receive data by means of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">send()</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">receive()</span></span></span>.
+     </li>
+     <li class="itemize">Close the connection by means of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">close()</span></span></span> function.</li></ul>
+<!--l. 220--><p class="noindent" ><span 
+class="cmbx-10">The socket() Function</span>
+<!--l. 222--><p class="noindent" >The first step is to call the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">socket</span></span></span> function, specifying the type of communication protocol (TCP based
+on IPv4, TCP based on IPv6, UDP).
+<!--l. 224--><p class="noindent" >The function is defined as follows:
+<div 
+class="colorbox" id="colorbox4"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;(int</span><span 
+class="cmtt-10">&#x00A0;family,</span><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;type,</span><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;protocol);</span><br /><br /></div>            </div>
+<!--l. 239--><p class="noindent" >where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">family</span></span></span> specifies the protocol family (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">AF_INET</span></span></span> for the IPv4 protocols), <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">type</span></span></span> is a constant
+described the type of socket (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SOCK_STREAM</span></span></span> for stream sockets and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SOCK_DGRAM</span></span></span> for datagram
+sockets.
+<!--l. 241--><p class="noindent" >The function returns a non-negative integer number, similar to a file descriptor, that we define <span 
+class="cmti-10">socket</span>
+<span 
+class="cmti-10">descriptor </span>or -1 on error.
+<!--l. 246--><p class="noindent" ><span 
+class="cmbx-10">The connect() Function</span>
+                                                                                  
+                                                                                  
+<!--l. 248--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">connect()</span></span></span> function is used by a TCP client to establish a connection with a TCP server/
+<!--l. 250--><p class="noindent" >The function is defined as follows:
+<div 
+class="colorbox" id="colorbox5"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;connect</span><span 
+class="cmtt-10">&#x00A0;(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;const</span><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*servaddr,</span><span 
+class="cmtt-10">&#x00A0;socklen_t</span><span 
+class="cmtt-10">&#x00A0;addrlen);</span><br /><br /></div></div>
+<!--l. 265--><p class="noindent" >where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span> is the socket descriptor returned by the socket function.
+<!--l. 267--><p class="noindent" >The function returns 0 if the it succeeds in establishing a connection (i.e., successful TCP three-way
+handshake, -1 otherwise.
+<!--l. 269--><p class="noindent" >The client does not have to call <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">bind()</span></span></span> in Section <a 
+href="#x1-10000doc"><!--tex4ht:ref: bind --></a> before calling this function: the kernel will choose both
+an ephemeral port and the source IP if necessary.
+<!--l. 274--><p class="noindent" ><span 
+class="cmbx-10">The bind() Function</span> <a 
+ id="x1-10000doc"></a>
+<!--l. 277--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">bind()</span></span></span> assigns a local protocol address to a socket. With the Internet protocols, the address is the
+combination of an IPv4 or IPv6 address (32-bit or 128-bit) address along with a 16 bit TCP port
+number.
+<!--l. 279--><p class="noindent" >The function is defined as follows:
+<div 
+class="colorbox" id="colorbox6"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;bind(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;const</span><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*servaddr,</span><span 
+class="cmtt-10">&#x00A0;socklen_t</span><span 
+class="cmtt-10">&#x00A0;addrlen);</span><br /><br /></div></div>
+<!--l. 294--><p class="noindent" >where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span> is the socket descriptor, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">servaddr</span></span></span> is a pointer to a protocol-specific address and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">addrlen</span></span></span> is
+the size of the address structure.
+<!--l. 297--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">bind()</span></span></span> returns 0 if it succeeds, -1 on error.
+<!--l. 300--><p class="noindent" >This use of the generic socket address <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockaddr</span></span></span> requires that any calls to these functions must
+cast the pointer to the protocol-specific address structure. For example for and IPv4 socket
+structure:
+<div 
+class="colorbox" id="colorbox7"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr_in</span><span 
+class="cmtt-10">&#x00A0;serv;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;IPv4</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;address</span><span 
+class="cmtt-10">&#x00A0;structure</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><br /><span 
+class="cmtt-10">bind(sockfd,</span><span 
+class="cmtt-10">&#x00A0;(struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr*)</span><span 
+class="cmtt-10">&#x00A0;&amp;serv,</span><span 
+class="cmtt-10">&#x00A0;sizeof(serv))</span><br /><br /></div></div>
+<!--l. 315--><p class="noindent" >A process can bind a specific IP address to its socket: for a TCP client, this assigns the source IP address
+that will be used for IP datagrams sent on the sockets. For a TCP server, this restricts the socket to
+receive incoming client connections destined only to that IP address.
+<!--l. 317--><p class="noindent" >Normally, a TCP client does not bind an IP address to its socket. The kernel chooses the source IP socket
+is connected, based on the outgoing interface that is used. If a TCP server does not bind an IP address to
+its socket, the kernel uses the destination IP address of the incoming packets as the server&#8217;s source
+address.
+<!--l. 320--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">bind()</span></span></span> allows to specify the IP address, the port, both or neither.
+<!--l. 322--><p class="noindent" >The table below summarizes the combinations for IPv4.
+<div class="tabular"> <table id="TBL-1" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-1-1g"><col 
+id="TBL-1-1"><col 
+id="TBL-1-2"><col 
+id="TBL-1-3"></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-1-1-"><td  style="white-space:nowrap; text-align:left;" id="TBL-1-1-1"  
+class="td11"><span 
+class="cmbx-10">IP Address   </span></td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-1-2"  
+class="td11"><span 
+class="cmbx-10">IP Port</span></td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-1-3"  
+class="td11"><span 
+class="cmbx-10">Result                                               </span></td></tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-2-"><td  style="white-space:nowrap; text-align:left;" id="TBL-1-2-1"  
+class="td11"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INADDR_ANY</span></span></span> </td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-2-2"  
+class="td11">0 </td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-2-3"  
+class="td11">Kernel chooses IP address and port</td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-3-"><td  style="white-space:nowrap; text-align:left;" id="TBL-1-3-1"  
+class="td11"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INADDR_ANY</span></span></span>    </td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-3-2"  
+class="td11">non zero</td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-3-3"  
+class="td11">Kernel chooses IP address, process specifies port</td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-4-"><td  style="white-space:nowrap; text-align:left;" id="TBL-1-4-1"  
+class="td11">Local IP address</td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-4-2"  
+class="td11">0          </td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-4-3"  
+class="td11">Process specifies IP address, kernel chooses port</td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-1-5-"><td  style="white-space:nowrap; text-align:left;" id="TBL-1-5-1"  
+class="td11">Local IP address</td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-5-2"  
+class="td11">non zero</td><td  style="white-space:nowrap; text-align:left;" id="TBL-1-5-3"  
+class="td11">Process specifies IP address and port               </td>
+</tr></table></div>
+                                                                                  
+                                                                                  
+<!--l. 337--><p class="noindent" >Note, the local host address is 127.0.0.1; for example, if you wanted to run your echoServer
+(see later) on your local machine the your client would connect to 127.0.0.1 with the suitable
+port.
+<!--l. 343--><p class="noindent" ><span 
+class="cmbx-10">The listen() Function</span>
+<!--l. 345--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">listen()</span></span></span> function converts an unconnected socket into a passive socket, indicating that the
+kernel should accept incoming connection requests directed to this socket. It is defined as
+follows:
+<div 
+class="colorbox" id="colorbox8"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;listen(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;backlog);</span><br /><br /></div>                        </div>
+<!--l. 360--><p class="noindent" >where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span> is the socket descriptor and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">backlog</span></span></span> is the maximum number of connections the kernel
+should queue for this socket. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">backlog</span></span></span> argument provides an hint to the system of the number of
+outstanding connect requests that it should enqueue on behalf of the process. Once the queue is full, the
+system will reject additional connection requests. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">backlog</span></span></span> value must be chosen based on the
+expected load of the server.
+<!--l. 362--><p class="noindent" >The function <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">listen()</span></span></span> return 0 if it succeeds, -1 on error.
+<!--l. 364--><p class="noindent" ><span 
+class="cmbx-10">The accept() Function</span>
+<!--l. 366--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">accept()</span></span></span> is used to retrieve a connect request and convert that into a request. It is defined as
+follows:
+<div 
+class="colorbox" id="colorbox9"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;accept(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*cliaddr,</span><br />        <span 
+class="cmtt-10">socklen_t</span><span 
+class="cmtt-10">&#x00A0;*addrlen);</span><br /><br /></div></div>
+<!--l. 382--><p class="noindent" >where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span> is a new file descriptor that is connected to the client that called the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">connect()</span></span></span>. The
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">cliaddr</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">addrlen</span></span></span> arguments are used to return the protocol address of the client. The new socket
+descriptor has the same socket type and address family of the original socket. The original socket passed to
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">accept()</span></span></span> is not associated with the connection, but instead remains available to receive additional
+connect requests. The kernel creates one connected socket for each client connection that is
+accepted.
+<!--l. 384--><p class="noindent" >If we don&#8217;t care about the client&#8217;s identity, we can set the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">cliaddr</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">addrlen</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NULL</span></span></span>.
+Otherwise, before calling the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">accept</span></span></span> function, the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">cliaddr</span></span></span> parameter has to be set to a buffer
+large enough to hold the address and set the interger pointed by <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">addrlen</span></span></span> to the size of the
+buffer.
+<!--l. 389--><p class="noindent" ><span 
+class="cmbx-10">The send() Function</span>
+<!--l. 391--><p class="noindent" >Since a socket endpoint is represented as a file descriptor, we can use <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">read</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">write</span></span></span> to communicate
+with a socket as long as it is connected. However, if we want to specify options we need another set of
+functions.
+<!--l. 393--><p class="noindent" >For example, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">send()</span></span></span> is similar to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">write()</span></span></span> but allows to specify some options. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">send()</span></span></span> is defined as
+follows:
+<div 
+class="colorbox" id="colorbox10"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><span 
+class="cmtt-10">ssize_t</span><span 
+class="cmtt-10">&#x00A0;send(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;const</span><span 
+class="cmtt-10">&#x00A0;void</span><span 
+class="cmtt-10">&#x00A0;*buf,</span><span 
+class="cmtt-10">&#x00A0;size_t</span><span 
+class="cmtt-10">&#x00A0;nbytes,</span><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;flags);</span><br /><br /></div></div>
+<!--l. 407--><p class="noindent" >where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">buf</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nbytes</span></span></span> have the same meaning as they have with <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">write</span></span></span>. The additional argument <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">flags</span></span></span> is
+used to specify how we want the data to be transmitted. We will not consider the possible options in this
+course. We will assume it equal to 0.
+                                                                                  
+                                                                                  
+<!--l. 409--><p class="noindent" >The function returns the number of bytes if it succeeds, -1 on error.
+<!--l. 414--><p class="noindent" ><span 
+class="cmbx-10">The receive() Function</span>
+<!--l. 416--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recv()</span></span></span> function is similar to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">read()</span></span></span>, but allows to specify some options to control how the data are
+received. We will not consider the possible options in this course. We will assume it equal to
+0.
+<!--l. 418--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">receive</span></span></span> is defined as follows:
+<div 
+class="colorbox" id="colorbox11"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><span 
+class="cmtt-10">ssize_t</span><span 
+class="cmtt-10">&#x00A0;recv(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;void</span><span 
+class="cmtt-10">&#x00A0;*buf,</span><span 
+class="cmtt-10">&#x00A0;size_t</span><span 
+class="cmtt-10">&#x00A0;nbytes,</span><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;flags);</span><br /><br /></div></div>
+<!--l. 432--><p class="noindent" >The function returns the length of the message in bytes, 0 if no messages are available and peer had done
+an orderly shutdown, or -1 on error.
+<!--l. 437--><p class="noindent" ><span 
+class="cmbx-10">The close() Function</span>
+<!--l. 439--><p class="noindent" >The normal <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">close()</span></span></span> function is used to close a socket and terminate a TCP socket. It returns 0 if it
+succeeds, -1 on error. It is defined as follows:
+<div 
+class="colorbox" id="colorbox12"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;unistd.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;close(int</span><span 
+class="cmtt-10">&#x00A0;sockfd);</span><br /><br /></div>                                          </div>
+<h3 class="likesectionHead"><a 
+ id="x1-11000"></a>UDP Socket API</h3>
+<!--l. 457--><p class="noindent" >There are some fundamental differences between TCP and UDP sockets. UDP is a connection-less,
+unreliable, datagram protocol (TCP is instead connection-oriented, reliable and stream based). There are
+some instances when it makes to use UDP instead of TCP. Some popular applications built
+around UDP are DNS, NFS, SNMP and for example, some Skype services and streaming
+media.
+<!--l. 459--><p class="noindent" >Figure <a 
+href="#x1-110014">4<!--tex4ht:ref: UDPsockets --></a> shows the the interaction between a UDP client and server. First of all, the client does
+not establish a connection with the server. Instead, the client just sends a datagram to the
+server using the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sendto</span></span></span> function which requires the address of the destination as a parameter.
+Similarly, the server does not accept a connection from a client. Instead, the server just calls the
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recvfrom</span></span></span> function, which waits until data arrives from some client. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recvfrom</span></span></span> returns the
+IP address of the client, along with the datagram, so the server can send a response to the
+client.
+<!--l. 463--><p class="noindent" >As shown in the Figure, the steps of establishing a UDP socket communication on the client side are as
+follows:
+     <ul class="itemize1">
+     <li class="itemize">Create a socket using the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">socket()</span></span></span> function;
+     </li>
+     <li class="itemize">Send and receive data by means of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recvfrom()</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sendto()</span></span></span> functions.</li></ul>
+<!--l. 469--><p class="noindent" >The steps of establishing a UDP socket communication on the server side are as follows:
+     <ul class="itemize1">
+     <li class="itemize">Create a socket with the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">socket()</span></span></span> function;
+                                                                                  
+                                                                                  
+     </li>
+     <li class="itemize">Bind the socket to an address using the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">bind()</span></span></span> function;
+     </li>
+     <li class="itemize">Send and receive data by means of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recvfrom()</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sendto()</span></span></span>.</li></ul>
+<!--l. 477--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                                  
+                                                                                  
+<a 
+ id="x1-110014"></a>
+                                                                                  
+                                                                                  
+<div  
+class="centerline">                                       <img 
+src="UDPsockets.jpg" alt="PIC"  
+>                                       </div>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;4: </span><span  
+class="content">UDP client-server.</span></div><!--tex4ht:label?: x1-110014 -->
+                                                                                  
+                                                                                  
+<!--l. 481--><p class="noindent" ></div><hr class="endfigure">
+<!--l. 483--><p class="noindent" >In this section, we will describe the two new functions <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recvfrom()</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sendto()</span></span></span>.
+<!--l. 485--><p class="noindent" ><span 
+class="cmbx-10">The recvfrom() Function</span>
+<!--l. 487--><p class="noindent" >This function is similar to the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">read()</span></span></span> function, but three additional arguments are required. The
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recvfrom()</span></span></span> function is defined as follows:
+<div 
+class="colorbox" id="colorbox13"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">ssize_t</span><span 
+class="cmtt-10">&#x00A0;recvfrom(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;void*</span><span 
+class="cmtt-10">&#x00A0;buff,</span><span 
+class="cmtt-10">&#x00A0;size_t</span><span 
+class="cmtt-10">&#x00A0;nbytes,</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;flags,</span><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr*</span><span 
+class="cmtt-10">&#x00A0;from,</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;socklen_t</span><span 
+class="cmtt-10">&#x00A0;*addrlen);</span><br /><br /></div></div>
+<!--l. 504--><p class="noindent" >The first three arguments <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">buff</span></span></span>, and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nbytes</span></span></span>, are identical to the first three arguments of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">read</span></span></span>
+and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">write</span></span></span>. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span> is the socket descriptor, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">buff</span></span></span> is the pointer to read into, and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nbytes</span></span></span> is number of
+bytes to read. In our examples we will set all the values of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">flags</span></span></span> argument to 0. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recvfrom</span></span></span>
+function fills in the socket address structure pointed to by <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">from</span></span></span> with the protocol address of who sent the
+datagram. The number of bytes stored in the socket address structure is returned in the integer pointed by
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">addrlen</span></span></span>.
+<!--l. 506--><p class="noindent" >The function returns the number of bytes read if it succeeds, -1 on error.
+<!--l. 508--><p class="noindent" ><span 
+class="cmbx-10">The sendto() Function</span>
+<!--l. 510--><p class="noindent" >This function is similar to the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">send()</span></span></span> function, but three additional arguments are required. The
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sendto()</span></span></span> function is defined as follows:
+<div 
+class="colorbox" id="colorbox14"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><span 
+class="cmtt-10">ssize_t</span><span 
+class="cmtt-10">&#x00A0;sendto(int</span><span 
+class="cmtt-10">&#x00A0;sockfd,</span><span 
+class="cmtt-10">&#x00A0;const</span><span 
+class="cmtt-10">&#x00A0;void</span><span 
+class="cmtt-10">&#x00A0;*buff,</span><span 
+class="cmtt-10">&#x00A0;size_t</span><span 
+class="cmtt-10">&#x00A0;nbytes,</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;flags,</span><span 
+class="cmtt-10">&#x00A0;const</span><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*to,</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;socklen_t</span><span 
+class="cmtt-10">&#x00A0;addrlen);</span><br /><br /></div></div>
+<!--l. 526--><p class="noindent" >The first three arguments <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">buff</span></span></span>, and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nbytes</span></span></span>, are identical to the first three arguments of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">recv</span></span></span>.
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sockfd</span></span></span> is the socket descriptor, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">buff</span></span></span> is the pointer to write from, and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nbytes</span></span></span> is number of bytes to write.
+In our examples we will set all the values of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">flags</span></span></span> argument to 0. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">to</span></span></span> argument is a socket address
+structure containing the protocol address (e.g., IP address and port number) of where the data is sent.
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">addlen</span></span></span> specified the size of this socket.
+<!--l. 529--><p class="noindent" >The function returns the number of bytes written if it succeeds, -1 on error.
+<h3 class="likesectionHead"><a 
+ id="x1-12000"></a>Concurrent Servers</h3>
+<!--l. 533--><p class="noindent" >There are two main classes of servers, iterative and concurrent. An <span 
+class="cmti-10">iterative </span>server iterates through each
+client, handling it one at a time. A <span 
+class="cmti-10">concurrent </span>server handles multiple clients at the same time. The
+simplest technique for a concurrent server is to call the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">fork</span></span></span> function, creating one child process for each
+client. An alternative technique is to use <span 
+class="cmti-10">threads </span>instead (i.e., light-weight processes). We do not consider
+this kind of servers in this course.
+<!--l. 535--><p class="noindent" ><span 
+class="cmbx-10">The fork() function</span>
+<!--l. 537--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">fork()</span></span></span> function is the only way in Unix to create a new process. It is defined as follows:
+<div 
+class="colorbox" id="colorbox15"><div class="BVerbatimInput"><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;unist.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">pid_t</span><span 
+class="cmtt-10">&#x00A0;fork(void);</span><br /><br /></div>                                                </div>
+<!--l. 552--><p class="noindent" >The function returns 0 if in child and the process ID of the child in parent; otherwise, -1 on
+error.
+                                                                                  
+                                                                                  
+<!--l. 554--><p class="noindent" >In fact, the function <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">fork()</span></span></span> is called once but returns <span 
+class="cmti-10">twice</span>. It returns once in the calling process (called
+the parent) with the process ID of the newly created process (its child). It also returns in the child, with
+a return value of 0. The return value tells whether the current process is the parent or the
+child.
+<!--l. 556--><p class="noindent" ><span 
+class="cmbx-10">Example</span>
+<!--l. 558--><p class="noindent" >A typical concurrent server has the following structure:
+<div 
+class="colorbox" id="colorbox16"><div class="BVerbatimInput"><br /><br /><span 
+class="cmtt-10">pid_t</span><span 
+class="cmtt-10">&#x00A0;pid;</span><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;listenfd,</span><span 
+class="cmtt-10">&#x00A0;connfd;</span><br /><span 
+class="cmtt-10">listenfd</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;socket(...);</span><br /><br /><span 
+class="cmtt-10">/***fill</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;address</span><span 
+class="cmtt-10">&#x00A0;with</span><span 
+class="cmtt-10">&#x00A0;server&#8217;s</span><span 
+class="cmtt-10">&#x00A0;well</span><span 
+class="cmtt-10">&#x00A0;known</span><span 
+class="cmtt-10">&#x00A0;port***/</span><br /><br /><span 
+class="cmtt-10">bind(listenfd,</span><span 
+class="cmtt-10">&#x00A0;...);</span><br /><span 
+class="cmtt-10">listen(listenfd,</span><span 
+class="cmtt-10">&#x00A0;...);</span><br /><br /><span 
+class="cmtt-10">for</span><span 
+class="cmtt-10">&#x00A0;(</span><span 
+class="cmtt-10">&#x00A0;;</span><span 
+class="cmtt-10">&#x00A0;;</span><span 
+class="cmtt-10">&#x00A0;)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;connfd</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;accept(listenfd,</span><span 
+class="cmtt-10">&#x00A0;...);</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;blocking</span><span 
+class="cmtt-10">&#x00A0;call</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;(</span><span 
+class="cmtt-10">&#x00A0;(pid</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;fork())</span><span 
+class="cmtt-10">&#x00A0;==</span><span 
+class="cmtt-10">&#x00A0;0</span><span 
+class="cmtt-10">&#x00A0;)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;close(listenfd);</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;child</span><span 
+class="cmtt-10">&#x00A0;closes</span><span 
+class="cmtt-10">&#x00A0;listening</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;/***process</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;request</span><span 
+class="cmtt-10">&#x00A0;doing</span><span 
+class="cmtt-10">&#x00A0;something</span><span 
+class="cmtt-10">&#x00A0;using</span><span 
+class="cmtt-10">&#x00A0;connfd</span><span 
+class="cmtt-10">&#x00A0;***/</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;.................</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;close(connfd);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(0);</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;/*</span><span 
+class="cmtt-10">&#x00A0;child</span><span 
+class="cmtt-10">&#x00A0;terminates</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;}</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;close(connfd);</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;/*parent</span><span 
+class="cmtt-10">&#x00A0;closes</span><span 
+class="cmtt-10">&#x00A0;connected</span><span 
+class="cmtt-10">&#x00A0;socket*/</span><br /><span 
+class="cmtt-10">}</span><br /><span 
+class="cmtt-10">}</span><br /><br /></div></div>
+<!--l. 597--><p class="noindent" >When a connection is established, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">accept</span></span></span> returns, the server calls <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">fork</span></span></span>, and the child process
+services the client (on the connected socket <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">connfd</span></span></span>). The parent process waits for another
+connection (on the listening socket <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">listenfd</span></span></span>. The parent closes the connected socket since the
+child handles the new client. The interactions among client and server are presented in Figure
+<a 
+href="#x1-120375">5<!--tex4ht:ref: concurrentserver --></a>.
+<!--l. 600--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                                  
+                                                                                  
+<a 
+ id="x1-120375"></a>
+                                                                                  
+                                                                                  
+<div  
+class="centerline">                                       <img 
+src="concurrentserver.jpg" alt="PIC"  
+>                                       </div>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;5: </span><span  
+class="content">Example of interaction among a client and a concurrent server.</span></div><!--tex4ht:label?: x1-120375 -->
+                                                                                  
+                                                                                  
+<!--l. 604--><p class="noindent" ></div><hr class="endfigure">
+<h3 class="likesectionHead"><a 
+ id="x1-13000"></a>TCP Client/Server Examples</h3>
+<!--l. 609--><p class="noindent" >We now present a complete example of the implementation of a TCP based echo server to summarize the
+concepts presented above. We present an iterative and a concurrent implementation of the
+server.
+<!--l. 611--><p class="noindent" ><span 
+class="cmbx-10">echoClient.c source</span>:<a 
+href="../src/c/client/echoClient.c" > echoClient.c </a>
+<!--l. 614--><p class="noindent" >
+<h4 class="likesubsectionHead"><a 
+ id="x1-14000"></a>TCP Echo Client</h4>
+<div 
+class="colorbox" id="colorbox17"><div class="BVerbatimInput"><br /><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;stdlib.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;stdio.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/types.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;netinet/in.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;string.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;MAXLINE</span><span 
+class="cmtt-10">&#x00A0;4096</span><span 
+class="cmtt-10">&#x00A0;/*max</span><span 
+class="cmtt-10">&#x00A0;text</span><span 
+class="cmtt-10">&#x00A0;line</span><span 
+class="cmtt-10">&#x00A0;length*/</span><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;SERV_PORT</span><span 
+class="cmtt-10">&#x00A0;3000</span><span 
+class="cmtt-10">&#x00A0;/*port*/</span><br /><br /><span 
+class="cmtt-10">int</span><br /><span 
+class="cmtt-10">main(int</span><span 
+class="cmtt-10">&#x00A0;argc,</span><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;**argv)</span><br /><span 
+class="cmtt-10">{</span><br /><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;sockfd;</span><br /><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr_in</span><span 
+class="cmtt-10">&#x00A0;servaddr;</span><br /><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;sendline[MAXLINE],</span><span 
+class="cmtt-10">&#x00A0;recvline[MAXLINE];</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//basic</span><span 
+class="cmtt-10">&#x00A0;check</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;arguments</span><br /><span 
+class="cmtt-10">&#x00A0;//additional</span><span 
+class="cmtt-10">&#x00A0;checks</span><span 
+class="cmtt-10">&#x00A0;can</span><span 
+class="cmtt-10">&#x00A0;be</span><span 
+class="cmtt-10">&#x00A0;inserted</span><br /><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;(argc</span><span 
+class="cmtt-10">&#x00A0;!=2)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;perror("Usage:</span><span 
+class="cmtt-10">&#x00A0;TCPClient</span><span 
+class="cmtt-10">&#x00A0;&#x003C;IP</span><span 
+class="cmtt-10">&#x00A0;address</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;server");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(1);</span><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//Create</span><span 
+class="cmtt-10">&#x00A0;a</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;client</span><br /><span 
+class="cmtt-10">&#x00A0;//If</span><span 
+class="cmtt-10">&#x00A0;sockfd&#x003C;0</span><span 
+class="cmtt-10">&#x00A0;there</span><span 
+class="cmtt-10">&#x00A0;was</span><span 
+class="cmtt-10">&#x00A0;an</span><span 
+class="cmtt-10">&#x00A0;error</span><span 
+class="cmtt-10">&#x00A0;in</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;creation</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;((sockfd</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;(AF_INET,</span><span 
+class="cmtt-10">&#x00A0;SOCK_STREAM,</span><span 
+class="cmtt-10">&#x00A0;0))</span><span 
+class="cmtt-10">&#x00A0;&#x003C;0)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;perror("Problem</span><span 
+class="cmtt-10">&#x00A0;in</span><span 
+class="cmtt-10">&#x00A0;creating</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(2);</span><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//Creation</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;memset(&amp;servaddr,</span><span 
+class="cmtt-10">&#x00A0;0,</span><span 
+class="cmtt-10">&#x00A0;sizeof(servaddr));</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_family</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;AF_INET;</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_addr.s_addr=</span><span 
+class="cmtt-10">&#x00A0;inet_addr(argv[1]);</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_port</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;htons(SERV_PORT);</span><span 
+class="cmtt-10">&#x00A0;//convert</span><span 
+class="cmtt-10">&#x00A0;to</span><span 
+class="cmtt-10">&#x00A0;big-endian</span><span 
+class="cmtt-10">&#x00A0;order</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//Connection</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;client</span><span 
+class="cmtt-10">&#x00A0;to</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;(connect(sockfd,</span><span 
+class="cmtt-10">&#x00A0;(struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*)</span><span 
+class="cmtt-10">&#x00A0;&amp;servaddr,</span><span 
+class="cmtt-10">&#x00A0;sizeof(servaddr))&#x003C;0)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;perror("Problem</span><span 
+class="cmtt-10">&#x00A0;in</span><span 
+class="cmtt-10">&#x00A0;connecting</span><span 
+class="cmtt-10">&#x00A0;to</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;server");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(3);</span><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><br /><span 
+class="cmtt-10">&#x00A0;while</span><span 
+class="cmtt-10">&#x00A0;(fgets(sendline,</span><span 
+class="cmtt-10">&#x00A0;MAXLINE,</span><span 
+class="cmtt-10">&#x00A0;stdin)</span><span 
+class="cmtt-10">&#x00A0;!=</span><span 
+class="cmtt-10">&#x00A0;NULL)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;send(sockfd,</span><span 
+class="cmtt-10">&#x00A0;sendline,</span><span 
+class="cmtt-10">&#x00A0;strlen(sendline),</span><span 
+class="cmtt-10">&#x00A0;0);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;(recv(sockfd,</span><span 
+class="cmtt-10">&#x00A0;recvline,</span><span 
+class="cmtt-10">&#x00A0;MAXLINE,0)</span><span 
+class="cmtt-10">&#x00A0;==</span><span 
+class="cmtt-10">&#x00A0;0){</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;//error:</span><span 
+class="cmtt-10">&#x00A0;server</span><span 
+class="cmtt-10">&#x00A0;terminated</span><span 
+class="cmtt-10">&#x00A0;prematurely</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;perror("The</span><span 
+class="cmtt-10">&#x00A0;server</span><span 
+class="cmtt-10">&#x00A0;terminated</span><span 
+class="cmtt-10">&#x00A0;prematurely");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(4);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;}</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;printf("%s",</span><span 
+class="cmtt-10">&#x00A0;"String</span><span 
+class="cmtt-10">&#x00A0;received</span><span 
+class="cmtt-10">&#x00A0;from</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;server:</span><span 
+class="cmtt-10">&#x00A0;");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;fputs(recvline,</span><span 
+class="cmtt-10">&#x00A0;stdout);</span><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><br /><span 
+class="cmtt-10">&#x00A0;exit(0);</span><br /><span 
+class="cmtt-10">}</span><br /><br /></div></div>
+<!--l. 684--><p class="noindent" ><span 
+class="cmbx-10">echoServer.c source</span>:<a 
+href="../src/c/server/echoServer.c" > echoServer.c </a>
+<!--l. 686--><p class="noindent" >
+<h4 class="likesubsectionHead"><a 
+ id="x1-15000"></a>TCP Iterative Server</h4>
+<div 
+class="colorbox" id="colorbox18"><div class="BVerbatimInput"><br /><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;stdlib.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;stdio.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/types.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;netinet/in.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;string.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;MAXLINE</span><span 
+class="cmtt-10">&#x00A0;4096</span><span 
+class="cmtt-10">&#x00A0;/*max</span><span 
+class="cmtt-10">&#x00A0;text</span><span 
+class="cmtt-10">&#x00A0;line</span><span 
+class="cmtt-10">&#x00A0;length*/</span><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;SERV_PORT</span><span 
+class="cmtt-10">&#x00A0;3000</span><span 
+class="cmtt-10">&#x00A0;/*port*/</span><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;LISTENQ</span><span 
+class="cmtt-10">&#x00A0;8</span><span 
+class="cmtt-10">&#x00A0;/*maximum</span><span 
+class="cmtt-10">&#x00A0;number</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;client</span><span 
+class="cmtt-10">&#x00A0;connections</span><span 
+class="cmtt-10">&#x00A0;*/</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;main</span><span 
+class="cmtt-10">&#x00A0;(int</span><span 
+class="cmtt-10">&#x00A0;argc,</span><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;**argv)</span><br /><span 
+class="cmtt-10">{</span><br /><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;listenfd,</span><span 
+class="cmtt-10">&#x00A0;connfd,</span><span 
+class="cmtt-10">&#x00A0;n;</span><br /><span 
+class="cmtt-10">&#x00A0;socklen_t</span><span 
+class="cmtt-10">&#x00A0;clilen;</span><br /><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;buf[MAXLINE];</span><br /><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr_in</span><span 
+class="cmtt-10">&#x00A0;cliaddr,</span><span 
+class="cmtt-10">&#x00A0;servaddr;</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//creation</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;listenfd</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;(AF_INET,</span><span 
+class="cmtt-10">&#x00A0;SOCK_STREAM,</span><span 
+class="cmtt-10">&#x00A0;0);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//preparation</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;address</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_family</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;AF_INET;</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_addr.s_addr</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;htonl(INADDR_ANY);</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_port</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;htons(SERV_PORT);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;bind</span><span 
+class="cmtt-10">&#x00A0;(listenfd,</span><span 
+class="cmtt-10">&#x00A0;(struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*)</span><span 
+class="cmtt-10">&#x00A0;&amp;servaddr,</span><span 
+class="cmtt-10">&#x00A0;sizeof(servaddr));</span><br /><br /><span 
+class="cmtt-10">&#x00A0;listen</span><span 
+class="cmtt-10">&#x00A0;(listenfd,</span><span 
+class="cmtt-10">&#x00A0;LISTENQ);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;printf("%s\n","Server</span><span 
+class="cmtt-10">&#x00A0;running...waiting</span><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;connections.");</span><br /><br /><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;(</span><span 
+class="cmtt-10">&#x00A0;;</span><span 
+class="cmtt-10">&#x00A0;;</span><span 
+class="cmtt-10">&#x00A0;)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;clilen</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;sizeof(cliaddr);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;connfd</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;accept</span><span 
+class="cmtt-10">&#x00A0;(listenfd,</span><span 
+class="cmtt-10">&#x00A0;(struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*)</span><span 
+class="cmtt-10">&#x00A0;&amp;cliaddr,</span><span 
+class="cmtt-10">&#x00A0;&amp;clilen);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;printf("%s\n","Received</span><span 
+class="cmtt-10">&#x00A0;request...");</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;while</span><span 
+class="cmtt-10">&#x00A0;(</span><span 
+class="cmtt-10">&#x00A0;(n</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;recv(connfd,</span><span 
+class="cmtt-10">&#x00A0;buf,</span><span 
+class="cmtt-10">&#x00A0;MAXLINE,0))</span><span 
+class="cmtt-10">&#x00A0;&#x003E;</span><span 
+class="cmtt-10">&#x00A0;0)</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;printf("%s","String</span><span 
+class="cmtt-10">&#x00A0;received</span><span 
+class="cmtt-10">&#x00A0;from</span><span 
+class="cmtt-10">&#x00A0;and</span><span 
+class="cmtt-10">&#x00A0;resent</span><span 
+class="cmtt-10">&#x00A0;to</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;client:");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;puts(buf);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;send(connfd,</span><span 
+class="cmtt-10">&#x00A0;buf,</span><span 
+class="cmtt-10">&#x00A0;n,</span><span 
+class="cmtt-10">&#x00A0;0);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;}</span><br /><br /><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;(n</span><span 
+class="cmtt-10">&#x00A0;&#x003C;</span><span 
+class="cmtt-10">&#x00A0;0)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;perror("Read</span><span 
+class="cmtt-10">&#x00A0;error");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(1);</span><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><span 
+class="cmtt-10">&#x00A0;close(connfd);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><span 
+class="cmtt-10">&#x00A0;//close</span><span 
+class="cmtt-10">&#x00A0;listening</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;close</span><span 
+class="cmtt-10">&#x00A0;(listenfd);</span><br /><span 
+class="cmtt-10">}</span><br /><br /></div></div>
+<!--l. 752--><p class="noindent" ><span 
+class="cmbx-10">conEchoServer.c source</span>:<a 
+href="../src/c/server/conEchoServer.c" > conEchoServer.c </a>
+<!--l. 754--><p class="noindent" >
+<h4 class="likesubsectionHead"><a 
+ id="x1-16000"></a>TCP Concurrent Echo Server</h4>
+<div 
+class="colorbox" id="colorbox19"><div class="BVerbatimInput"><br /><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;stdlib.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;stdio.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/types.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;sys/socket.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;netinet/in.h&#x003E;</span><br /><span 
+class="cmtt-10">#include</span><span 
+class="cmtt-10">&#x00A0;&#x003C;string.h&#x003E;</span><br /><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;MAXLINE</span><span 
+class="cmtt-10">&#x00A0;4096</span><span 
+class="cmtt-10">&#x00A0;/*max</span><span 
+class="cmtt-10">&#x00A0;text</span><span 
+class="cmtt-10">&#x00A0;line</span><span 
+class="cmtt-10">&#x00A0;length*/</span><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;SERV_PORT</span><span 
+class="cmtt-10">&#x00A0;3000</span><span 
+class="cmtt-10">&#x00A0;/*port*/</span><br /><span 
+class="cmtt-10">#define</span><span 
+class="cmtt-10">&#x00A0;LISTENQ</span><span 
+class="cmtt-10">&#x00A0;8</span><span 
+class="cmtt-10">&#x00A0;/*maximum</span><span 
+class="cmtt-10">&#x00A0;number</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;client</span><span 
+class="cmtt-10">&#x00A0;connections*/</span><br /><br /><span 
+class="cmtt-10">int</span><span 
+class="cmtt-10">&#x00A0;main</span><span 
+class="cmtt-10">&#x00A0;(int</span><span 
+class="cmtt-10">&#x00A0;argc,</span><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;**argv)</span><br /><span 
+class="cmtt-10">{</span><br /><span 
+class="cmtt-10">&#x00A0;int</span><span 
+class="cmtt-10">&#x00A0;listenfd,</span><span 
+class="cmtt-10">&#x00A0;connfd,</span><span 
+class="cmtt-10">&#x00A0;n;</span><br /><span 
+class="cmtt-10">&#x00A0;pid_t</span><span 
+class="cmtt-10">&#x00A0;childpid;</span><br /><span 
+class="cmtt-10">&#x00A0;socklen_t</span><span 
+class="cmtt-10">&#x00A0;clilen;</span><br /><span 
+class="cmtt-10">&#x00A0;char</span><span 
+class="cmtt-10">&#x00A0;buf[MAXLINE];</span><br /><span 
+class="cmtt-10">&#x00A0;struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr_in</span><span 
+class="cmtt-10">&#x00A0;cliaddr,</span><span 
+class="cmtt-10">&#x00A0;servaddr;</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//Create</span><span 
+class="cmtt-10">&#x00A0;a</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;soclet</span><br /><span 
+class="cmtt-10">&#x00A0;//If</span><span 
+class="cmtt-10">&#x00A0;sockfd&#x003C;0</span><span 
+class="cmtt-10">&#x00A0;there</span><span 
+class="cmtt-10">&#x00A0;was</span><span 
+class="cmtt-10">&#x00A0;an</span><span 
+class="cmtt-10">&#x00A0;error</span><span 
+class="cmtt-10">&#x00A0;in</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;creation</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;((listenfd</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;(AF_INET,</span><span 
+class="cmtt-10">&#x00A0;SOCK_STREAM,</span><span 
+class="cmtt-10">&#x00A0;0))</span><span 
+class="cmtt-10">&#x00A0;&#x003C;0)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;perror("Problem</span><span 
+class="cmtt-10">&#x00A0;in</span><span 
+class="cmtt-10">&#x00A0;creating</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(2);</span><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><br /><br /><span 
+class="cmtt-10">&#x00A0;//preparation</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;address</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_family</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;AF_INET;</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_addr.s_addr</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;htonl(INADDR_ANY);</span><br /><span 
+class="cmtt-10">&#x00A0;servaddr.sin_port</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;htons(SERV_PORT);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//bind</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;bind</span><span 
+class="cmtt-10">&#x00A0;(listenfd,</span><span 
+class="cmtt-10">&#x00A0;(struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*)</span><span 
+class="cmtt-10">&#x00A0;&amp;servaddr,</span><span 
+class="cmtt-10">&#x00A0;sizeof(servaddr));</span><br /><br /><span 
+class="cmtt-10">&#x00A0;//listen</span><span 
+class="cmtt-10">&#x00A0;to</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;by</span><span 
+class="cmtt-10">&#x00A0;creating</span><span 
+class="cmtt-10">&#x00A0;a</span><span 
+class="cmtt-10">&#x00A0;connection</span><span 
+class="cmtt-10">&#x00A0;queue,</span><span 
+class="cmtt-10">&#x00A0;then</span><span 
+class="cmtt-10">&#x00A0;wait</span><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;clients</span><br /><span 
+class="cmtt-10">&#x00A0;listen</span><span 
+class="cmtt-10">&#x00A0;(listenfd,</span><span 
+class="cmtt-10">&#x00A0;LISTENQ);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;printf("%s\n","Server</span><span 
+class="cmtt-10">&#x00A0;running...waiting</span><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;connections.");</span><br /><br /><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;(</span><span 
+class="cmtt-10">&#x00A0;;</span><span 
+class="cmtt-10">&#x00A0;;</span><span 
+class="cmtt-10">&#x00A0;)</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;clilen</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;sizeof(cliaddr);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;//accept</span><span 
+class="cmtt-10">&#x00A0;a</span><span 
+class="cmtt-10">&#x00A0;connection</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;connfd</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;accept</span><span 
+class="cmtt-10">&#x00A0;(listenfd,</span><span 
+class="cmtt-10">&#x00A0;(struct</span><span 
+class="cmtt-10">&#x00A0;sockaddr</span><span 
+class="cmtt-10">&#x00A0;*)</span><span 
+class="cmtt-10">&#x00A0;&amp;cliaddr,</span><span 
+class="cmtt-10">&#x00A0;&amp;clilen);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;printf("%s\n","Received</span><span 
+class="cmtt-10">&#x00A0;request...");</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;(</span><span 
+class="cmtt-10">&#x00A0;(childpid</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;fork</span><span 
+class="cmtt-10">&#x00A0;())</span><span 
+class="cmtt-10">&#x00A0;==</span><span 
+class="cmtt-10">&#x00A0;0</span><span 
+class="cmtt-10">&#x00A0;)</span><span 
+class="cmtt-10">&#x00A0;{//if</span><span 
+class="cmtt-10">&#x00A0;it&#8217;s</span><span 
+class="cmtt-10">&#x00A0;0,</span><span 
+class="cmtt-10">&#x00A0;it&#8217;s</span><span 
+class="cmtt-10">&#x00A0;child</span><span 
+class="cmtt-10">&#x00A0;process</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;printf</span><span 
+class="cmtt-10">&#x00A0;("%s\n","Child</span><span 
+class="cmtt-10">&#x00A0;created</span><span 
+class="cmtt-10">&#x00A0;for</span><span 
+class="cmtt-10">&#x00A0;dealing</span><span 
+class="cmtt-10">&#x00A0;with</span><span 
+class="cmtt-10">&#x00A0;client</span><span 
+class="cmtt-10">&#x00A0;requests");</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;//close</span><span 
+class="cmtt-10">&#x00A0;listening</span><span 
+class="cmtt-10">&#x00A0;socket</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;close</span><span 
+class="cmtt-10">&#x00A0;(listenfd);</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;while</span><span 
+class="cmtt-10">&#x00A0;(</span><span 
+class="cmtt-10">&#x00A0;(n</span><span 
+class="cmtt-10">&#x00A0;=</span><span 
+class="cmtt-10">&#x00A0;recv(connfd,</span><span 
+class="cmtt-10">&#x00A0;buf,</span><span 
+class="cmtt-10">&#x00A0;MAXLINE,0))</span><span 
+class="cmtt-10">&#x00A0;&#x003E;</span><span 
+class="cmtt-10">&#x00A0;0)</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;{</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;printf("%s","String</span><span 
+class="cmtt-10">&#x00A0;received</span><span 
+class="cmtt-10">&#x00A0;from</span><span 
+class="cmtt-10">&#x00A0;and</span><span 
+class="cmtt-10">&#x00A0;resent</span><span 
+class="cmtt-10">&#x00A0;to</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;client:");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;puts(buf);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;send(connfd,</span><span 
+class="cmtt-10">&#x00A0;buf,</span><span 
+class="cmtt-10">&#x00A0;n,</span><span 
+class="cmtt-10">&#x00A0;0);</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;}</span><br /><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;if</span><span 
+class="cmtt-10">&#x00A0;(n</span><span 
+class="cmtt-10">&#x00A0;&#x003C;</span><span 
+class="cmtt-10">&#x00A0;0)</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;printf("%s\n",</span><span 
+class="cmtt-10">&#x00A0;"Read</span><span 
+class="cmtt-10">&#x00A0;error");</span><br /><span 
+class="cmtt-10">&#x00A0;</span><span 
+class="cmtt-10">&#x00A0;exit(0);</span><br /><span 
+class="cmtt-10">&#x00A0;}</span><br /><span 
+class="cmtt-10">&#x00A0;//close</span><span 
+class="cmtt-10">&#x00A0;socket</span><span 
+class="cmtt-10">&#x00A0;of</span><span 
+class="cmtt-10">&#x00A0;the</span><span 
+class="cmtt-10">&#x00A0;server</span><br /><span 
+class="cmtt-10">&#x00A0;close(connfd);</span><br /><span 
+class="cmtt-10">}</span><br /><span 
+class="cmtt-10">}</span><br /><br /></div></div>
+ 
+</body></html> 
+
+                                                                                  
+
+
