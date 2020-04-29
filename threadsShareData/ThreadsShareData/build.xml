@@ -1,0 +1,51 @@
+<project name="Ser321 Example Java Synchronized Threads"
+         default="targets" basedir=".">
+
+   <!-- This software built with Sun Java Development Kit version 1.6.0_28 -->
+   <!-- This software build with Apache Ant version 1.8.2 -->
+
+   <!-- set global properties for this build -->
+   <property name="src" value="./src" />
+   <property name="build" value="./classes" />
+   <property name="lib" value="./lib" />
+
+   <path id="compile.classpath">
+      <pathelement location="${build}"/>
+   </path>
+
+   <target name="targets">
+      <echo message="targets are clean, prepare, build, execute"/>
+   </target>
+
+   <target name="prepare">
+      <!-- Create the time stamp -->
+      <tstamp/>
+      <!-- Create the build directory structure used by compile -->
+      <echo message="home defined as: ${home}" />
+      <mkdir dir="${build}" />
+   </target>
+
+   <target name="build" depends="prepare"
+           description="Compile Java sources">
+      <javac srcdir="${src}"
+             includeantruntime="false"
+             destdir="${build}">
+         <classpath refid="compile.classpath"/>
+      </javac>
+   </target>
+
+   <target name="execute" depends="build"
+           description="Start program">
+         <echo message="user.dir is: ${user.dir}"/>
+         <echo message="command line execute: java -cp classes ser321.threads.SynchronizedThreads" />
+         <java classname="ser321.threads.SynchronizedThreads" fork="yes">
+           <classpath refid="compile.classpath"/>
+         </java>
+   </target>
+
+   <target name="clean">
+     <!-- Delete the ${build} directory tree -->
+     <delete dir="${build}" />
+   </target>
+
+</project>

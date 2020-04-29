@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project name="Ser321 Java simple sockets examples."
+         default="targets" basedir="."
+         xmlns:dn="antlib:org.apache.ant.dotnet"
+         xmlns="antlib:org.apache.tools.ant"
+         xmlns:cpptasks="antlib:net.sf.antcontrib.cpptasks">
+
+   <property name="src.dir" value="src"/>
+   <property name="build" value="classes"/>
+   <property environment="env"/>
+   <property name="user" value="${env.USERNAME}"/>
+
+   <target name="targets">
+      <echo message="Targets are clean, prepare, build, and targets"/>
+      <echo message="Datagram: java -cp classes ser321.sockets.DatagramReceive"/>
+      <echo message="Next: java -cp classes ser321.sockets.DatagramSend"/>
+      <echo message="java -cp classes ser321.sockets.GetIP quay.poly.asu.edu"/>
+      <echo message="java -cp classes ser321.sockets.GetNameForIP 129.219.40.47"/>
+      <echo message="java -cp classes ser321.sockets.SimpleBrowser http://quay.poly.asu.edu/Ser321"/>
+      <echo message="java -cp classes ser321.sockets.SockServer"/>
+      <echo message="java -cp classes ser321.sockets.SockClient"/>
+   </target>
+
+   <path id="compile.classpath">
+      <pathelement location="${build}"/>
+   </path>
+
+   <target name="prepare">
+      <mkdir dir="${build}" />
+   </target>
+
+   <target name="clean">
+      <delete dir="${build}" failonerror="false"/>
+   </target>
+
+   <target name="build" depends="prepare">
+      <javac srcdir="${src.dir}"
+             includeantruntime="false"
+             destdir="${build}">
+         <classpath refid="compile.classpath"/>
+      </javac>
+   </target>
+
+</project>

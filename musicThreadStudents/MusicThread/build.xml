@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<project name="Ser321 sample thread to play a wav file."
+         default="targets" basedir="."
+         xmlns:dn="antlib:org.apache.ant.dotnet"
+         xmlns="antlib:org.apache.tools.ant"
+         xmlns:cpptasks="antlib:net.sf.antcontrib.cpptasks">
+
+   <property name="src.dir" value="src"/>
+   <property name="program" value="Library"/>
+   <property name="build" value="./classes" />
+   <property name="lib" value="./lib"/>
+   <property environment="env"/>
+   <property name="user" value="${env.USERNAME}"/>
+
+   <path id="compile.classpath">
+      <pathelement location="${build}"/>
+      <pathelement path="${lib}/MusicGui.jar"/>
+   </path>
+
+   <target name="targets">
+      <echo message="Targets are clean, prepare, build, execute, and targets"/>
+      <echo message="basedir is: ${basedir}"/>
+      <echo message="os is: ${os.name}"/>
+   </target>
+
+   <target name="prepare">
+      <mkdir dir="${build}" />
+   </target>
+
+   <target name="clean">
+      <delete dir="${build}" failonerror="false"/>
+   </target>
+
+   <target name="build" depends="prepare"
+           description="Compile the Java sources into the classes directory">
+      <javac srcdir="${src.dir}"
+             includeantruntime="false"
+             destdir="${build}">
+         <classpath refid="compile.classpath"/>
+      </javac>
+
+   </target>
+
+   <target name="execute" depends="build" description="Start Java program">
+      <java classname="ser321.MusicThread" fork="yes">
+         <classpath refid="compile.classpath"/>
+      </java>
+   </target>
+
+</project>
+
