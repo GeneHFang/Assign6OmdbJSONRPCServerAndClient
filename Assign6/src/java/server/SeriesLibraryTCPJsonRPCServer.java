@@ -69,7 +69,7 @@ public class SeriesLibraryTCPJsonRPCServer extends Thread{
 
     public static void main (String args[]) {
         Socket sock;
-        SeriesLibrary studCol = new SeriesLibraryImpl();
+        SeriesLibrary ss = new SeriesLibraryImpl();
         int id=0;
         try {
            if (args.length != 1) {
@@ -87,7 +87,7 @@ public class SeriesLibraryTCPJsonRPCServer extends Thread{
               sock = serv.accept();
               System.out.println("SeriesLibrary server connected to client: "+id);
               SeriesLibraryTCPJsonRPCServer myServerThread =
-                 new SeriesLibraryTCPJsonRPCServer(sock,id++,studCol);
+                 new SeriesLibraryTCPJsonRPCServer(sock,id++,ss);
               myServerThread.start();
            }
         } catch(Exception e) {e.printStackTrace();}
