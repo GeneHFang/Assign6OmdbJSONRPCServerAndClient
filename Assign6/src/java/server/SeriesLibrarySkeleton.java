@@ -8,6 +8,7 @@ import java.util.*;
 import org.json.JSONObject;
 
 import ser321.assign3.ghli1.SeriesLibrary;
+import ser321.assign3.ghli1.SeriesSeason;
 
 import org.json.JSONArray;
 
@@ -85,7 +86,8 @@ public class SeriesLibrarySkeleton extends Object {
             else if(method.equals("getSeriesSeason")){
               String ssTitle = params.getString(0);
               debug("get SeriesSeason named: "+ssTitle);
-              JSONObject ss = seriesLib.getSeriesSeason(ssTitle);
+              SeriesSeason ss = seriesLib.getSeriesSeason(ssTitle);
+              JSONObject ssJson = ss.toJson(); 
               result.put("result",ss);
            }else if(method.equals("saveLibraryToFile")){
             boolean res = seriesLib.saveLibraryToFile();

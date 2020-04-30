@@ -67,14 +67,16 @@ TreeSelectionListener {
 	private SeriesLibrary slibrary, searchlibrary;
 	private String omdbKey;
 	private boolean searchFlag = false;
+	private SeriesSeasonTcpProxy sc;
 
 	public MediaLibraryApp(String author, String authorKey, String hostId, String regPort) {
 		super(author);
-		
+
 		try {
-			this.slibrary = (SeriesLibrary) Naming.lookup(
-					"rmi://"+hostId+":"+regPort+"/SeriesLibrary");
-	
+		// 	this.slibrary = (SeriesLibrary) Naming.lookup(
+		// 			"rmi://"+hostId+":"+regPort+"/SeriesLibrary");
+			this.sc = (SeriesSeasonTcpProxy)new SeriesSeasonTcpProxy(host, Integer.parseInt(port));
+			
 					
 			// sets the value of 'author' on the title window of the GUI.
 			this.omdbKey = authorKey;

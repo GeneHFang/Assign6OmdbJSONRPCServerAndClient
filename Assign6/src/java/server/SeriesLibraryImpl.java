@@ -34,19 +34,19 @@ import org.json.JSONTokener;
 
 
 
-public class SeriesLibraryImpl extends UnicastRemoteObject implements SeriesLibrary{
+public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 
 	protected Hashtable<String,SeriesSeason> aLib;
 	private static final String fileName="seriesTest.json"; //JSON file on server-side that stores library information
 	
 	//blank constructor, used to manually populate fields
-	public SeriesLibraryImpl() throws RemoteException{ 
+	public SeriesLibraryImpl(){ 
 		super();
 		this.aLib = new Hashtable<String,SeriesSeason>();
 	}
 
 	//constructor that is called first, populates user's current library seriesTest.json. If user has no JSON file saved, it will log to console informing user.
-	public SeriesLibraryImpl(boolean init) throws RemoteException{
+	public SeriesLibraryImpl(boolean init){
 		super();
 		this.aLib= new Hashtable<String,SeriesSeason>();
 		try { InputStream i = new FileInputStream(new File(fileName));
@@ -99,7 +99,7 @@ public class SeriesLibraryImpl extends UnicastRemoteObject implements SeriesLibr
 	}
 
 	//Returns a string arraylist in format of "SHOW TITLE - SHOW SEASON", which acts as the keys for the aLib hash
-	public ArrayList<String> getSeriesSeason() throws RemoteException{
+	public ArrayList<String> getSeriesSeason(){
 		ArrayList<String> retVal = new ArrayList<>();		
 		Enumeration keys = this.aLib.keys();
 
@@ -111,12 +111,12 @@ public class SeriesLibraryImpl extends UnicastRemoteObject implements SeriesLibr
 	}
 
 	//returns the SeriesSeason object that corresponds to the key provided
-	public SeriesSeason getSeriesSeason(String title) throws RemoteException{
+	public SeriesSeason getSeriesSeason(String title){
 		return this.aLib.get(title);
 	}
 	
 	//Adds a SeriesSeason object to the aLib hash, using the "SHOW TITLE - SHOW SEASON" as key
-	public boolean addSeriesSeason(SeriesSeason seriesSeason) throws RemoteException{
+	public boolean addSeriesSeason(SeriesSeason seriesSeason){
 		try{
 			System.out.println("Adding "+seriesSeason.getTitle()+" - Season "+seriesSeason.getSeason());
 			this.aLib.put(seriesSeason.getTitle()+" - Season "+seriesSeason.getSeason(), seriesSeason);
@@ -129,7 +129,7 @@ public class SeriesLibraryImpl extends UnicastRemoteObject implements SeriesLibr
 	}
 	
 	//Removes a SeriesSeason object that corresponds to the key provided
-	public boolean removeSeriesSeason(String title) throws RemoteException{
+	public boolean removeSeriesSeason(String title){
 		try{
 			System.out.println("Removing "+title);
 			this.aLib.remove(title);
@@ -141,17 +141,17 @@ public class SeriesLibraryImpl extends UnicastRemoteObject implements SeriesLibr
 	}
 
 	//Helper method for getting Iterator of keyvalues
-	private Iterator<String> getKeys() throws RemoteException{
+	private Iterator<String> getKeys(){
 		return this.aLib.keySet().iterator();	
 	}
 	
 	//unused method for resetting aLib object
-	public void clears() throws RemoteException{
+	public void clears(){
 		this.aLib = new Hashtable<String, SeriesSeason>();
 	}
 	
 	//create JSON of Library
-	public boolean saveLibraryToFile() throws RemoteException{
+	public boolean saveLibraryToFile(){
 		System.out.println("Saving Library to seriesTest.json...");
 		JSONObject obj = new JSONObject();
 		Iterator<String> keys = getKeys();
@@ -201,7 +201,7 @@ public class SeriesLibraryImpl extends UnicastRemoteObject implements SeriesLibr
 	}
 
 	//REFACTORED - Restores from JSON file in server-side application's root directory, returns true if successful
-	public boolean restoreLibraryFromFile() throws RemoteException{
+	public boolean restoreLibraryFromFile(){
 		
 		System.out.println("Restoring Library from seriesTest.json...");
 		boolean resRes = false;

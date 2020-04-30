@@ -52,13 +52,13 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 		this.episodes = episodes;
 	}
 	//Creates a SeriesSeason object from a JSONObject. Doesn't work. Implemented workaround in MediaLibraryApp.java
-	public SeriesSeason(JSONObject seriesObj){
+	public SeriesSeason(JSONObject json){
 		System.out.println("This isn't working for some reason?"+ seriesObj.get("Title"));
 		try{
+			JSONObject seriesObj = new JSONObject(json);
 			JSONArray epObjs = seriesObj.getJSONArray("Episodes");
-			//Iterator<String> keys = obj.keys();
 			
-
+			
 			ArrayList<Episode> eps = new ArrayList<>();
 			if (epObjs != null) {
 				for (int i = 0 ; i < epObjs.length(); i++){
@@ -68,28 +68,59 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 					JSONObject jEp = epObjs.getJSONObject(i);
 					epTitle = (String)jEp.get("Title");
 					epNum = new Integer((String)jEp.get("Episode"));
-					epRating = new Double((String)jEp.get("imdbRating"));
+					try{
+						epRating = new Double((String)jEp.get("imdbRating"));
+					}
+					catch(Exception edd){epRating = 0.0;}		
 				
 					Episode ep = new Episode(epTitle, epNum, epRating);
 					eps.add(ep);
 					
 				}			
 			}
-			System.out.println("What the fuck is this thing?"+seriesObj.get("Title"));
+			
 			this.title = (String)seriesObj.get("Title");
 			this.genre = (String)seriesObj.get("Genre");
 			this.imgURL = (String)seriesObj.get("Poster");
 			this.plotSummary = (String)seriesObj.get("Plot");
 			this.rating = new Double((String)seriesObj.get("imdbRating"));			
 			
-			this.season = new Integer((String)seriesObj.get("Season"));
-			this.episodes = eps;
+			this.season = new Integer((String)seasonObj.get("Season"));
 			
+			this.episodes = eps;
 		}
 		catch(Exception e){
 					
 		}
 	}
+
+	//Converts SeriesSeason Object to JSON]
+	public JSONObject toJson(){
+		JSONObject obj = new JSONObject();
+
+		
+		//for each key of the SeriesSeason object serialize properties
+		obj.put("Title", this.title());
+		obj.put("Season", this.season());
+		obj.put("imdbRating", this.rating());
+		obj.put("Genre", this.genre());
+		obj.put("Poster", this.imgURL());
+		obj.put("Plot", this.plotSummary());
+		//JSONArray eps = new JSONArray(this.Episodes().toArray());
+		ArrayList<Episode> epis = this.episodes();
+		JSONObject[] jEps = new JSONObject[epis.size()];
+		for (int i = 0; i < epis.size(); i++){
+			JSONObject s = new JSONObject();
+			s.put("Title",epis.get(i).getTitle());
+			s.put("imdbRating",epis.get(i).getImdbRating());
+			s.put("Episode",epis.get(i).getEpisode());
+			jEps[i] = s;
+		}
+		obj.put("Episodes", jEps);
+
+		return obj;
+	}
+
 	
 	//Getters
 	public String getTitle(){

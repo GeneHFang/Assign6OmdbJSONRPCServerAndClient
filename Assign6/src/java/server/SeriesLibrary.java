@@ -26,21 +26,21 @@ import org.json.JSONObject;
  * @version April 2020
  */
 
-public interface SeriesLibrary extends Remote{
+public interface SeriesLibrary{
 	//Returns a string arraylist in format of "SHOW TITLE - SHOW SEASON", which acts as the keys for the aLib hash
-	public ArrayList<String> getSeriesSeason() throws RemoteException;
+	public ArrayList<String> getSeriesSeason();
 
 	//returns the SeriesSeason object that corresponds to the key provided
-	public SeriesSeason getSeriesSeason(String title) throws RemoteException;
+	public SeriesSeason getSeriesSeason(String title);
 
 	//Adds a SeriesSeason object to the aLib hash, using the "SHOW TITLE - SHOW SEASON" as key
-	public boolean addSeriesSeason(SeriesSeason seriesSeason) throws RemoteException;
+	public boolean addSeriesSeason(SeriesSeason seriesSeason);
 
 	//Removes a SeriesSeason object that corresponds to the key provided	
-	public boolean removeSeriesSeason(String title) throws RemoteException;
+	public boolean removeSeriesSeason(String title);
 	
 	//Save and restore library from JSON file in server directory
-	public boolean saveLibraryToFile() throws RemoteException;
-	public boolean restoreLibraryFromFile() throws RemoteException;
+	public boolean saveLibraryToFile();
+	public boolean restoreLibraryFromFile();
 	
 }
