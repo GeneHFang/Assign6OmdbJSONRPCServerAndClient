@@ -87,14 +87,16 @@ public class SeriesLibrarySkeleton extends Object {
               debug("get SeriesSeason named: "+ssTitle);
               JSONObject ss = seriesLib.getSeriesSeason(ssTitle);
               result.put("result",ss);
-           }else if(method.equals("get")){
-              String studName = params.getString(0);
-              Student stud = seriesLib.get(studName);
-              JSONObject studJson = stud.toJson();
-              debug("get request found: "+studJson.toString());
-              result.put("result",studJson);
-           }else if(method.equals("getNames")){
-              String[] names = seriesLib.getNames();
+           }else if(method.equals("saveLibraryToFile")){
+            boolean res = seriesLib.saveLibraryToFile();
+            debug("Saving library to Server.. ");
+            result.put("result",res);
+           }else if(method.equals("restoreLibraryFromFile")){
+            boolean res = seriesLib.restoreLibraryToFile();
+            debug("Saving library to Server.. ");
+            result.put("result",res);
+           }else if(method.equals("getSeriesSeasons")){
+              ArrayList<String> names = seriesLib.getSeriesSeason();
               JSONArray resArr = new JSONArray();
               for (int i=0; i<names.length; i++){
                  resArr.put(names[i]);
