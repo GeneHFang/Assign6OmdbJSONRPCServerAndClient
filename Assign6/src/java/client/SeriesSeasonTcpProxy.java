@@ -90,4 +90,59 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         return ret;
      }
 
+    public boolean saveLibraryToFile(){
+        boolean ret = false;
+        String result = callMethod("saveLibraryToFile", new Object[]{});
+        JSONObject res = new JSONObject(result);
+        ret = res.optBoolean("result",false);
+        return ret;
+    }
+
+    public boolean restoreLibraryFromFile(){
+        boolean ret = false;
+        String result = callMethod("restoreLibraryFromFile", new Object[]{});
+        JSONObject res = new JSONObject(result);
+        ret = res.optBoolean("result",false);
+        return ret;
+    }
+
+    public boolean addSeriesSeason(SereiesSeason ss){
+        boolean ret = false;
+        String result = callMethod("addSeriesSeason", new Object[]{ss.toJson()});
+        JSONObject res = new JSONObject(result);
+        ret = res.optBoolean("result",false);
+        return ret;
+    }
+
+    public boolean removeSeriesSeason(String key){
+        boolean ret = false;
+        String result = callMethod("removeSeriesSeason", new Object[]{key});
+        JSONObject res = new JSONObject(result);
+        ret = res.optBoolean("result",false);
+        return ret;
+    }
+
+    public SeriesSeason getSeriesSeason(String key){
+        SeriesSeason ret = new SeriesSeason();
+        String result = callMethod("getSeriesSeason", new Object[]{key});
+        JSONObject res = new JSONObject(result);
+        JSONObject ssJson = res.optJSONObject("result");
+        ret = new SeriesSeason(ssJson);
+        return ret;
+    }
+
+    public ArrayList<String> getSeriesSeason(){
+        ArrayList<String> ret = new ArrayList<>();
+        String result = callMethod("getSeriesSeasons", new Object[0]);
+        JSONObject res = new JSONObject(result);
+        JSONArray ssJson = res.optJSONArray("result");
+        for (int i=0; i<ssJson.size(); i++){
+           ret.add(namesJson.optString(i,"unknown"));
+        }
+        return ret;
+    }
+
+
+
+
 }

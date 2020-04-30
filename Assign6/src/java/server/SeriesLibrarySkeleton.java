@@ -73,7 +73,7 @@ public class SeriesLibrarySkeleton extends Object {
               JSONObject ss = params.getJSONObject(0);
               //Might not work,  will have to do workaround if so.
               SeriesSeason toAdd = new SeriesSeason(ss);
-              debug("adding SeriesLibrary: "+toAdd.toJsonString());
+              debug("adding SeriesLibrary: "+toAdd.toJson().toString());
               seriesLib.add(toAdd);
               result.put("result",true);
            }
@@ -101,7 +101,7 @@ public class SeriesLibrarySkeleton extends Object {
               ArrayList<String> names = seriesLib.getSeriesSeason();
               JSONArray resArr = new JSONArray();
               for (int i=0; i<names.length; i++){
-                 resArr.put(names[i]);
+                 resArr.put(names.get(i));
               }
               debug("getNames request found: "+resArr.toString());
               result.put("result",resArr);
