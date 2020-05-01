@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.*;
 import org.json.JSONObject;
 
+import ser321.assign6.ghli1.SeriesSeason;
 
 import org.json.JSONArray;
 
@@ -73,7 +74,7 @@ public class SeriesLibrarySkeleton extends Object {
               JSONObject ss = new JSONObject(jsonString);
               //Might not work,  will have to do workaround if so.
               SeriesSeason toAdd = new SeriesSeason(ss);
-              System.out.println("after add");
+              System.out.println("after add: "+toAdd.getTitle());
               debug("adding SeriesLibrary: "+toAdd.toJson().toString());
               seriesLib.addSeriesSeason(toAdd);
               result.put("result",true);
