@@ -87,7 +87,7 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 			this.episodes = eps;
 		}
 		catch(Exception e){
-					
+			System.out.println("Failing inside this constructor: "+ e.getMessage());
 		}
 	}
 
