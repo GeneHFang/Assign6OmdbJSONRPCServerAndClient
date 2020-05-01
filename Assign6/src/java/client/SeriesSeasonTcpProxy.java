@@ -36,7 +36,7 @@ import org.json.JSONArray;
 
 public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
     private static final boolean debugOn = false;
-    private static final int buffSize = 4096;
+    private static final int buffSize = 65536;
     private static int id = 0;
     private String host;
     private int port;
