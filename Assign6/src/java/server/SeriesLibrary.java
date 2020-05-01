@@ -33,6 +33,9 @@ public interface SeriesLibrary{
 	//returns the SeriesSeason object that corresponds to the key provided
 	public SeriesSeason getSeriesSeason(String title);
 
+	//clears current library and replaces with json object
+	public boolean createNewFromJson(JSONObject series);
+
 	//Returns JSONObject of current library
 	public JSONObject getLibrary();
 
