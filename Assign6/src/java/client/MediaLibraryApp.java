@@ -359,8 +359,7 @@ TreeSelectionListener {
 			//All episodes from search Query is added		
 			try{
 				sc.addSeriesSeason(
-				searchlibrary.getSeriesSeason(searchlibrary.getSeriesSeason().get(0))			
-			);
+					searchlibrary.getSeriesSeason(searchlibrary.getSeriesSeason().get(0)));
 			rebuildTree();
 			}
 			catch(Exception er) {er.printStackTrace();}
