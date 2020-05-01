@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="JsonRPC in CPP using libjson-rpc-cpp" default="targets" basedir=".">
+<project name="Assign 6" default="targets" basedir=".">
    <taskdef resource="cpptasks.tasks"/>
    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
    <property name="src.dir" value="src"/>
@@ -64,12 +64,12 @@
 
   <target name="build" depends="prepare"
            description="Compile Java sources">
-      <javac srcdir="${src}/java/server"
+      <javac srcdir="${src.dir}/java/server"
              includeantruntime="false"
              destdir="${classes.dir}">
          <classpath refid="compile.classpath"/>
       </javac>
-      <javac srcdir="${src}/java/client"
+      <javac srcdir="${src.dir}/java/client"
              includeantruntime="false"
              destdir="${classes.dir}">
          <classpath refid="compile.classpath"/>
