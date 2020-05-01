@@ -170,7 +170,9 @@ TreeSelectionListener {
 	 * getSubLabelled which is defined in the GUI/view class.
 	 **/
 	public void rebuildTree(){ //rebuilds the main library
-		this.slibrary.createNewFromJson(sc.getLibrary());
+		JSONObject lib = sc.getLibrary();
+		System.out.println("This is the series being used: "+searchlibrary.toString());
+		this.slibrary.createNewFromJson();
 		System.out.println("This is happening after slibrary gets created from createnew");
 		rebuildTree(slibrary);		
 	}
