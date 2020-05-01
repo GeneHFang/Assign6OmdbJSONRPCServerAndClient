@@ -1,5 +1,5 @@
 
- package ser321.assign6.ghli1.server;
+ package ser321.assign6.ghli1;
 import java.rmi.*;
 import java.util.ArrayList;
 import org.json.JSONObject;
