@@ -312,13 +312,15 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 				try {
 					addSeriesSeason(sseason);
 				}
-				catch (Exception er) {er.printStackTrace();}
+				catch (Exception er) {
+					System.out.println("exception in adding: "+er.getMessage());
+				}
 				
 			}
 			resRes = true; 
 		}
 		catch (Exception dl) {
-			dl.printStackTrace();
+			System.out.println("exception in constructor: "+dl.getMessage());
 		}
 		
 		System.out.println("Library restore "+(resRes ? "successful!" : "failed"));
