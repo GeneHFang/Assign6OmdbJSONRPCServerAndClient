@@ -3,6 +3,8 @@ package ser321.assign6.ghli1;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -78,7 +80,11 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            os.write(bytesToSend,0,bytesToSend.length);
            numBytesReceived = is.read(bytesReceived,0,bufLen);
            ret = new String(bytesReceived,0,numBytesReceived);
+           
+           TimeUnit.SECONDS.sleep(10);
+
            System.out.println("callMethod received from server: "+ret);
+
            os.close();
            is.close();
            sock.close();
