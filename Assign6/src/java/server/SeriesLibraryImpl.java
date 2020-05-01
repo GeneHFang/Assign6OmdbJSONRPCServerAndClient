@@ -188,7 +188,7 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 	//create JSON of Library
 	public boolean saveLibraryToFile(){
 		System.out.println("Saving Library to seriesTest.json...");
-		boolean saveres;
+		boolean saveres = false;
 		
 		JSONObject obj = getLibrary(); 
 		
