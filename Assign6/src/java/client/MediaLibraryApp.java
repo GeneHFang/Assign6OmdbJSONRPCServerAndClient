@@ -171,6 +171,7 @@ TreeSelectionListener {
 	 **/
 	public void rebuildTree(){ //rebuilds the main library
 		this.slibrary.createNewFromJson(sc.getLibrary());
+		System.out.println("This is happening after slibrary gets created from createnew")
 		rebuildTree(slibrary);		
 	}
 	public void rebuildTree(SeriesLibrary pLib){ //builds library only used for search
