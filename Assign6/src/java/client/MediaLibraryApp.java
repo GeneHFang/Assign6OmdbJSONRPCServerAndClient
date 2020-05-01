@@ -173,7 +173,7 @@ TreeSelectionListener {
 		System.out.println("This is happening before sc is called");
 		JSONObject lib = sc.getLibrary();
 		System.out.println("This is happening after sc is called");
-		System.out.println("This is the series being used: "+searchlibrary.toString());
+		System.out.println("This is the series being used: "+lib.toString());
 		this.slibrary.createNewFromJson(lib);
 		rebuildTree(slibrary);		
 	}
