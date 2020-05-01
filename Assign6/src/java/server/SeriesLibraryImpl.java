@@ -48,6 +48,7 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 	public boolean createNewFromJson(JSONObject series){
 		clears();
 		boolean ret = false;
+		System.out.println("This is the series being used: "+series.toString());
 		Iterator<String> keys = series.keys();
 			
 			//create a SeriesSeason Object per JSONObject
