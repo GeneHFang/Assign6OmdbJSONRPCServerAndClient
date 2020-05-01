@@ -104,7 +104,7 @@ public class SeriesLibrarySkeleton extends Object {
             result.put("result",res);
            }else if(method.equals("restoreLibraryFromFile")){
             boolean res = seriesLib.restoreLibraryFromFile();
-            debug("Saving library to Server.. ");
+            debug("Restoring library.. ");
             result.put("result",res);
            }else if(method.equals("getSeriesSeasons")){
               ArrayList<String> names = seriesLib.getSeriesSeason();

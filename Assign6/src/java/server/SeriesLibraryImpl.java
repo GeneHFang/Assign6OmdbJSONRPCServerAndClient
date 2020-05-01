@@ -98,54 +98,61 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 	//constructor that is called first, populates user's current library seriesTest.json. If user has no JSON file saved, it will log to console informing user.
 	public SeriesLibraryImpl(boolean init){
 		super();
-		this.aLib= new Hashtable<String,SeriesSeason>();
-		try { InputStream i = new FileInputStream(new File(fileName));
-				JSONObject series = new JSONObject(new JSONTokener(i));
-				Iterator<String> keys = series.keys();
-				while (keys.hasNext()){
-					String nodeTitle = keys.next();
-					//System.out.println("KEY"+nodeTitle);
-					JSONObject actual = series.optJSONObject(nodeTitle);
-					
-					//System.out.println("SON"+actual.toString());
-						SeriesSeason sseason = new SeriesSeason();
-						JSONArray epObjs = actual.getJSONArray("Episodes");
-			//Iterator<String> keys = obj.keys();
-			
+		if (init){
+			this.aLib= new Hashtable<String,SeriesSeason>();
+			try { InputStream i = new FileInputStream(new File(fileName));
+					JSONObject series = new JSONObject(new JSONTokener(i));
+					Iterator<String> keys = series.keys();
+					while (keys.hasNext()){
+						String nodeTitle = keys.next();
+						//System.out.println("KEY"+nodeTitle);
+						JSONObject actual = series.optJSONObject(nodeTitle);
+						
+						//System.out.println("SON"+actual.toString());
+							SeriesSeason sseason = new SeriesSeason();
+							JSONArray epObjs = actual.getJSONArray("Episodes");
+				//Iterator<String> keys = obj.keys();
+				
 
-			ArrayList<Episode> eps = new ArrayList<>();
-			if (epObjs != null) {
-				for (int ik = 0 ; ik < epObjs.length(); ik++){
-					String epTitle;
-					int epNum;
-					double epRating;
-					JSONObject jEp = epObjs.getJSONObject(ik);
-					epTitle = (String)jEp.get("Title");
-					epNum = new Integer(jEp.get("Episode").toString());
-					epRating = new Double(jEp.get("imdbRating").toString());
-					//System.out.println("attrs: "+epTitle+epNum+epRating);
-					Episode ep = new Episode(epTitle, epNum, epRating);
-					eps.add(ep);
-					
-				}			
-			}
-			sseason.setTitle((String)actual.get("Title"));
-			sseason.setGenre((String)actual.get("Genre"));
-			sseason.setImgURL((String)actual.get("Poster"));
-			sseason.setPlotSummary((String)actual.get("Plot"));
-			sseason.setRating(new Double(actual.get("imdbRating").toString()));			
-			
-			sseason.setSeason(new Integer(actual.get("Season").toString()));
-			sseason.setEpisodes(eps);
-			
-			System.out.println("sseason: "+sseason.getTitle());
-					this.aLib.put(nodeTitle, sseason);
-					
-			//System.out.println(saveLibraryToFile().toString());
-					
+				ArrayList<Episode> eps = new ArrayList<>();
+				if (epObjs != null) {
+					for (int ik = 0 ; ik < epObjs.length(); ik++){
+						String epTitle;
+						int epNum;
+						double epRating;
+						JSONObject jEp = epObjs.getJSONObject(ik);
+						epTitle = (String)jEp.get("Title");
+						epNum = new Integer(jEp.get("Episode").toString());
+						epRating = new Double(jEp.get("imdbRating").toString());
+						//System.out.println("attrs: "+epTitle+epNum+epRating);
+						Episode ep = new Episode(epTitle, epNum, epRating);
+						eps.add(ep);
+						
+					}			
 				}
+				sseason.setTitle((String)actual.get("Title"));
+				sseason.setGenre((String)actual.get("Genre"));
+				sseason.setImgURL((String)actual.get("Poster"));
+				sseason.setPlotSummary((String)actual.get("Plot"));
+				sseason.setRating(new Double(actual.get("imdbRating").toString()));			
+				
+				sseason.setSeason(new Integer(actual.get("Season").toString()));
+				sseason.setEpisodes(eps);
+				
+				System.out.println("sseason: "+sseason.getTitle());
+						this.aLib.put(nodeTitle, sseason);
+						
+				//System.out.println(saveLibraryToFile().toString());
+						
+					}
 			}
-		catch(Exception e) { System.out.println("No library exists"); }
+			catch(Exception e) { 
+				e.printStackTrace();
+			 }	
+		}
+		else{
+			SeriesLibraryImpl();
+		}
 	}
 
 	//Returns a string arraylist in format of "SHOW TITLE - SHOW SEASON", which acts as the keys for the aLib hash
@@ -204,7 +211,6 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 	public JSONObject getLibrary(){
 		JSONObject obj = new JSONObject();
 		Iterator<String> keys = getKeys();
-		boolean saveres = false; 
 		
 		//iterate through titles
 		while (keys.hasNext()){
@@ -265,7 +271,6 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 		boolean resRes = false;
 		
 		try {
-			SeriesLibrary slibrary = new SeriesLibraryImpl();
 			InputStream i = new FileInputStream(new File("seriesTest.json"));
 			JSONObject series = new JSONObject(new JSONTokener(i));
 			Iterator<String> keys = series.keys();
