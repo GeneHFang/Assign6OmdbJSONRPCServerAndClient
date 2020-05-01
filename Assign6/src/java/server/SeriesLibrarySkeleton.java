@@ -7,8 +7,8 @@ import java.io.*;
 import java.util.*;
 import org.json.JSONObject;
 
-import ser321.assign3.ghli1.SeriesLibrary;
-import ser321.assign3.ghli1.SeriesSeason;
+import ser321.assign6.ghli1.SeriesLibrary;
+import ser321.assign6.ghli1.SeriesSeason;
 
 import org.json.JSONArray;
 
