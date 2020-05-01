@@ -100,6 +100,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         String result = callMethod("getLibrary", new Object[]{});
         JSONObject res = new JSONObject(result);
         String resString = res.optString("result");
+        System.out.println("ResString is "+resString);
         JSONObject libJson = new JSONObject(resString);
         return libJson;
     }
