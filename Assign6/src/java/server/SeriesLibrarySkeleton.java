@@ -102,7 +102,7 @@ public class SeriesLibrarySkeleton extends Object {
            }else if(method.equals("getSeriesSeasons")){
               ArrayList<String> names = seriesLib.getSeriesSeason();
               JSONArray resArr = new JSONArray();
-              for (int i=0; i<names.length; i++){
+              for (int i=0; i<names.size(); i++){
                  resArr.put(names.get(i));
               }
               debug("getNames request found: "+resArr.toString());
