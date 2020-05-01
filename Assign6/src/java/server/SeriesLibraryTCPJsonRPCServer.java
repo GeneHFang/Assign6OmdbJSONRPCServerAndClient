@@ -1,4 +1,4 @@
-package ser321.assign6.ghli1;
+package ser321.assign6.ghli1.server;
 
 import java.net.*;
 import java.io.*;

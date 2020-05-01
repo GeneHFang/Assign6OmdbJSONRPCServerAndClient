@@ -1,5 +1,5 @@
 
- package ser321.assign6.ghli1;
+ package ser321.assign6.ghli1.server;
 import java.io.*;
 import java.util.*;
 import java.net.URL;

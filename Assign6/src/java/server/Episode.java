@@ -1,5 +1,5 @@
 
- package ser321.assign6.ghli1;
+ package ser321.assign6.ghli1.server;
 /**
  * Copyright 2020 Gene Li,
  *

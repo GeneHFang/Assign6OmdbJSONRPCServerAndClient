@@ -112,7 +112,7 @@
 
    <target name="server" depends="build"
            description="execute java server">
-      <java classname="ser321.assign6.ghli1.SeriesLibraryTCPJsonRPCServer" fork="yes">   
+      <java classname="ser321.assign6.ghli1.server.SeriesLibraryTCPJsonRPCServer" fork="yes">   
          <arg value="${regPort}"/> 
          <classpath refid="compile.classpath"/>
       </java>
