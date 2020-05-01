@@ -85,6 +85,11 @@ public class SeriesLibrarySkeleton extends Object {
                JSONObject libJson = seriesLib.getLibrary();
                result.put("result",libJson);
             }
+            else if(method.equals("createNewFromJson")){
+               JSONObject newJson = params.getJSONObject(0);
+               boolean res = seriesLib.createNewFromJson(newJson);
+               result.put("result",res);
+            }
             else if(method.equals("getSeriesSeason")){
               String ssTitle = params.getString(0);
               debug("get SeriesSeason named: "+ssTitle);

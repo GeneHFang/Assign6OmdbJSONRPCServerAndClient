@@ -102,6 +102,14 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         return libJson;
     }
 
+    public boolean createNewFromJson(JSONObject series){
+        boolean ret = false;
+        String result = callMethod("createNewFromJson",new Object[]{});
+        JSONObject res = new JSONObject(result);
+        ret = res.optBoolean("result",false);
+        return ret;
+    }
+
     public boolean restoreLibraryFromFile(){
         boolean ret = false;
         String result = callMethod("restoreLibraryFromFile", new Object[]{});
