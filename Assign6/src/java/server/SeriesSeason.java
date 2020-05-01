@@ -66,12 +66,9 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 					double epRating;
 					JSONObject jEp = epObjs.getJSONObject(i);
 					System.out.println("This is the episode: "+jEp.toString());
-					epTitle = (String)jEp.get("Title");
-					epNum = new Integer((String)jEp.get("Episode"));
-					try{
-						epRating = new Double((String)jEp.get("imdbRating"));
-					}
-					catch(Exception edd){epRating = 0.0;}		
+					epTitle = jEp.getString("Title");
+					epNum = new Integer(jEp.getString("Episode"));
+					epRating = new Double(jEp.getString("imdbRating"));	
 				
 					Episode ep = new Episode(epTitle, epNum, epRating);
 					eps.add(ep);
@@ -79,13 +76,13 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 				}			
 			}
 			
-			this.title = (String)seriesObj.get("Title");
-			this.genre = (String)seriesObj.get("Genre");
-			this.imgURL = (String)seriesObj.get("Poster");
-			this.plotSummary = (String)seriesObj.get("Plot");
-			this.rating = new Double((String)seriesObj.get("imdbRating"));			
+			this.title = seriesObj.getString("Title");
+			this.genre = seriesObj.getString("Genre");
+			this.imgURL = seriesObj.getString("Poster");
+			this.plotSummary = seriesObj.getString("Plot");
+			this.rating = new Double(seriesObj.getString("imdbRating"));			
 			
-			this.season = new Integer((String)seriesObj.get("Season"));
+			this.season = new Integer(seriesObj.getString("Season"));
 			
 			this.episodes = eps;
 		}
