@@ -125,7 +125,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
     public boolean addSeriesSeason(SeriesSeason ss){
         boolean ret = false;
         System.out.println("Inside add in proxy");
-        String result = callMethod("addSeriesSeason", new Object[]{ss.toJson().toString()});
+        String result = callMethod("addSeriesSeason", new Object[]{ss.toJson()});
         JSONObject res = new JSONObject(result);
         ret = res.optBoolean("result",false);
         return ret;
