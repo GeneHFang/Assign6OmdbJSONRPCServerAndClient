@@ -1,12 +1,21 @@
 <?xml version="1.0"?>
-<project name="JsonRPC in CPP using libjson-rpc-cpp" default="targets">
+<project name="JsonRPC in CPP using libjson-rpc-cpp" default="targets" basedir=".">
    <taskdef resource="cpptasks.tasks"/>
    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
    <property name="src.dir" value="src"/>
+   
+   <!-- Java properties -->
    <property name="classes.dir" value="classes"/>
-   <property name="host.name" value="127.0.0.1"/>
-   <property name="port.num" value="8080"/>
-   <property name="json.file.name" value="StudentLibraryMethods.json"/>
+   <!-- CPP  properties -->
+   <property name="obj.dir" value="obj"/>
+   <property name="dist.dir" value="bin"/>
+   
+   <!-- Args -->
+   <property name="host" value="127.0.0.1"/>
+   <property name="port" value="8080"/>
+   <property name="userId" value="Gene.Li.Default"/>
+   <property name="omdbkey" value="Your OMDB APIKey"/>
+   <!-- <property name="json.file.name" value="StudentLibraryMethods.json"/> -->
    <property environment="env"/>
    <!--Set the ostype property: <property name="ostype" value="${env.OSTYPE}"/>-->
     <condition property="ostype" value="${env.OSTYPE}">
@@ -19,52 +28,93 @@
     </condition>
 
    <target name="targets">
-      <echo message="Targets are clean, prepare, build.all, build.server, build.client, targets"/>
+      <echo message="Targets are clean, prepare, build, server, java.client, cpp.client, targets"/>
       <echo message="base directory is: ${basedir}"/>
       <echo message="ostype is ${ostype}"/>
-      <echo message="invoke java tcp server with: java -cp classes:lib/json.jar ser321.tcpjsonrpc.server.StudentCollectionTCPJsonRPCServer ${port.num}"/>
-      <echo message="invoke java client with: java -cp classes:lib/json.jar ser321.tcpjsonrpc.StudentCollectionClient ${host.name} ${port.num}"/>
+      <echo message="invoke java tcp server with: ant server -Dport=${port}"/>
+      <echo message="invoke java client with: ant java.client -DuserId=${userID} -Domdbkey=${omdbkey} -Dhost=${host} -Dport=${port}"/>
+      <!-- <echo message="invoke cpp client with: ant cpp.client -DuserId=${userID} -Domdbkey=${omdbkey} -Dhost=${host} -Dport=${port}"/> -->
    </target>
 
+    <!-- Package dependencies -->
    <path id="compile.classpath">
-      <pathelement location="${classes.dir}"/>
-      <fileset dir="${basedir}/lib">
+      <pathelement location="${build}"/>
+      <fileset dir="${lib}">
          <include name="json.jar"/>
+      </fileset>
+	    <fileset dir="${lib}">
+         <include name="assign2Gui.jar"/>
       </fileset>
    </path>
 
    <target name="clean">
       <delete dir="${classes.dir}" failonerror="false"/>
+      <delete dir="${dist.dir}" failonerror="false"/>
+      <delete dir="${obj.dir}" failonerror="false"/>
    </target>
 
    <target name="prepare">
       <mkdir dir="${classes.dir}"/>
    </target>
 
-   <target name="build.all"
-           depends="clean,prepare,build.server,build.client"
-           description="Clean then build java server, and java client"/>
+   <!-- <target name="cpp.prepare">
+      <mkdir dir="${dist.dir}"/>
+      <mkdir dir="${obj.dir"/>
+   </target> -->
 
-   <target name="build.server" depends="prepare"
-          description="Compile Java server sources">
-     <!-- Compile Java server classes as necessary -->
-     <echo message="tcp server: java -cp classes:lib/json.jar ser321.tcpjsonrpc.server.StudentCollectionTCPJsonRPCServer ${port.num}"/>
-     <javac srcdir="${src.dir}/java/server"
-            destdir="${classes.dir}"
-            includeantruntime="false">
-        <classpath refid="compile.classpath"/>
-    </javac>
+  <target name="build" depends="prepare"
+           description="Compile Java sources">
+      <javac srcdir="${src}/java/server"
+             includeantruntime="false"
+             destdir="${classes.dir}">
+         <classpath refid="compile.classpath"/>
+      </javac>
+      <javac srcdir="${src}/java/client"
+             includeantruntime="false"
+             destdir="${classes.dir}">
+         <classpath refid="compile.classpath"/>
+      </javac>      
    </target>
-   
-   <target name="build.client" depends="build.server"
-          description="Compile Java client sources">
-     <!-- Compile Java classes as necessary -->
-     <echo message="execute client: java -cp classes:lib/json.jar ser321.tcpjsonrpc.StudentCollectionClient ${host.name} ${port.num}"/>
-     <javac srcdir="${src.dir}/java/client"
-            destdir="${classes.dir}"
-            includeantruntime="false">
-        <classpath refid="compile.classpath"/>
-     </javac>
+
+   <!-- <target name="cpp.build" depends="cpp.prepare" description="Compile C++ sources">
+      <cc outtype="executable" subsystem="console"
+            outfile="${dist.dir}/cppSeriesLibrary"
+            objdir="${obj.dir}">
+      <compilerarg value="-std=c++14"/>
+            <includepath>
+               <dirset dir="/" includes="usr/include,usr/local/include,usr/include/jsoncpp"/>
+            </includepath>
+            <libset dir="/usr/lib" libs="stdc++,fltk,fltk_images,curl,jsoncpp,pthread"/>
+            <libset dir="/usr/local/lib" libs="curlpp"/>
+            <fileset dir="${src.cpp.dir}/client/" includes="MediaClientGui.cpp, SeriesSeason.cpp, Episode.cpp, MediaLibrary.cpp,samplemain.cpp"/>
+      </cc>
+   </target> -->
+   <!--    
+   <target name="cpp.client" depends="cpp.build">
+     <echo message="./bin/cppSeriesLibrary ${userId} ${omdbkey}"/>
+     <exec executable="./bin/cppSeriesLibrary">
+       <arg line= "${userId} ${omdbkey}"/>
+     </exec>
+   </target> -->
+
+   <target name="java.client" depends="build"
+           description="execute java client">
+      <java classname="ser321.assign6.ghli1.MediaLibraryApp"
+            fork="yes">
+         <arg value="${userId}"/> 
+         <arg value="${omdbkey}"/>
+         <arg value="${hostId}"/>
+         <arg value="${regPort}"/> 
+         <classpath refid="compile.classpath"/>
+      </java>
+   </target>
+
+   <target name="server" depends="build"
+           description="execute java server">
+      <java classname="ser321.assign6.ghli1.SeriesLibraryTCPJsonRPCServer" fork="yes">   
+         <arg value="${regPort}"/> 
+         <classpath refid="compile.classpath"/>
+      </java>
    </target>
 
 </project>
