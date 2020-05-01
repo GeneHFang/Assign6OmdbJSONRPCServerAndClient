@@ -39,7 +39,7 @@
 
     <!-- Package dependencies -->
    <path id="compile.classpath">
-      <pathelement location="${build}"/>
+      <pathelement location="${classes.dir}"/>
       <fileset dir="${lib}">
          <include name="json.jar"/>
       </fileset>
@@ -104,16 +104,16 @@
             fork="yes">
          <arg value="${userId}"/> 
          <arg value="${omdbkey}"/>
-         <arg value="${hostId}"/>
-         <arg value="${regPort}"/> 
+         <arg value="${host}"/>
+         <arg value="${port}"/> 
          <classpath refid="compile.classpath"/>
       </java>
    </target>
 
    <target name="server" depends="build"
            description="execute java server">
-      <java classname="ser321.assign6.ghli1.server.SeriesLibraryTCPJsonRPCServer" fork="yes">   
-         <arg value="${regPort}"/> 
+      <java classname="ser321.assign6.ghli1.SeriesLibraryTCPJsonRPCServer" fork="yes">   
+         <arg value="${port}"/> 
          <classpath refid="compile.classpath"/>
       </java>
    </target>
