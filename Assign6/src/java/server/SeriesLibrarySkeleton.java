@@ -75,7 +75,7 @@ public class SeriesLibrarySkeleton extends Object {
               //Might not work,  will have to do workaround if so.
 
 
-              SeriesSeason toAdd = new SeriesSeason();
+              SeriesSeason toAdd = new SeriesSeason(ss);
 
               debug("adding SeriesLibrary: "+toAdd.toJson().toString());
               seriesLib.addSeriesSeason(toAdd);
