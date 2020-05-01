@@ -72,8 +72,8 @@ public class SeriesLibrarySkeleton extends Object {
               System.out.println("before add");
               JSONObject ss = params.getJSONObject(0);
               //Might not work,  will have to do workaround if so.
+              System.out.println("after getting params: "+ss.toString());
               SeriesSeason toAdd = new SeriesSeason(ss);
-              System.out.println("after add: "+toAdd.getTitle());
               debug("adding SeriesLibrary: "+toAdd.toJson().toString());
               seriesLib.addSeriesSeason(toAdd);
               result.put("result",true);
