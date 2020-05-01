@@ -71,7 +71,7 @@ TreeSelectionListener {
 
 	public MediaLibraryApp(String author, String authorKey, String hostId, String regPort) {
 		super(author);
-
+		slibrary = new SeriesLibraryImpl();
 		try {
 		// 	this.slibrary = (SeriesLibrary) Naming.lookup(
 		// 			"rmi://"+hostId+":"+regPort+"/SeriesLibrary");
