@@ -39,7 +39,7 @@
 
     <!-- Package dependencies -->
    <path id="compile.classpath">
-      <pathelement location="${build}"/>
+      <pathelement location="${classes.dir}"/>
       <fileset dir="${lib}">
          <include name="json.jar"/>
       </fileset>
