@@ -4,7 +4,6 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-import ser321.assign6.ghli1.SeriesLibrarySkeleton;
 
 /**
  * Copyright 2020 Tim Lindquist, Gene H. Li
