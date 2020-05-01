@@ -3,6 +3,7 @@
    <taskdef resource="cpptasks.tasks"/>
    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
    <property name="src.dir" value="src"/>
+   <property name="lib" value="lib"/>
    
    <!-- Java properties -->
    <property name="classes.dir" value="classes"/>
