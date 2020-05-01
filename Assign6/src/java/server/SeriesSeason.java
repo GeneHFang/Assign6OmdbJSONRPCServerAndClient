@@ -65,6 +65,7 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 					int epNum;
 					double epRating;
 					JSONObject jEp = epObjs.getJSONObject(i);
+					System.out.println("This is the episode: "+jEp.toString());
 					epTitle = (String)jEp.get("Title");
 					epNum = new Integer((String)jEp.get("Episode"));
 					try{
