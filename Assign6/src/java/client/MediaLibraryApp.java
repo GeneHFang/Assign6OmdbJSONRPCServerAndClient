@@ -170,7 +170,7 @@ TreeSelectionListener {
 	 * getSubLabelled which is defined in the GUI/view class.
 	 **/
 	public void rebuildTree(){ //rebuilds the main library
-		this.slibrary = sc.getLibrary();
+		this.slibrary = new SeriesSeason(sc.getLibrary());
 		rebuildTree(slibrary);		
 	}
 	public void rebuildTree(SeriesLibrary pLib){ //builds library only used for search
