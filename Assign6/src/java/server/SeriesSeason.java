@@ -53,7 +53,6 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 	}
 	//Creates a SeriesSeason object from a JSONObject. Doesn't work. Implemented workaround in MediaLibraryApp.java
 	public SeriesSeason(JSONObject json){
-		System.out.println("This isn't working for some reason?"+ seriesObj.get("Title"));
 		try{
 			JSONObject seriesObj = new JSONObject(json);
 			JSONArray epObjs = seriesObj.getJSONArray("Episodes");
