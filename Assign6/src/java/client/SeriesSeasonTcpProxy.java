@@ -98,6 +98,13 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         return ret;
     }
 
+    public JSONObject getLibrary(){
+        String result = callMethod("getLibrary", new Object[]{});
+        JSONObject res = new JSONObject(result);
+        JSONObject libJson = res.optJSONObject("result");
+        return libJson;
+    }
+
     public boolean restoreLibraryFromFile(){
         boolean ret = false;
         String result = callMethod("restoreLibraryFromFile", new Object[]{});
@@ -106,7 +113,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         return ret;
     }
 
-    public boolean addSeriesSeason(SereiesSeason ss){
+    public boolean addSeriesSeason(SeriesSeason ss){
         boolean ret = false;
         String result = callMethod("addSeriesSeason", new Object[]{ss.toJson()});
         JSONObject res = new JSONObject(result);

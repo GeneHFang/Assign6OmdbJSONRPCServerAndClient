@@ -149,10 +149,9 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 	public void clears(){
 		this.aLib = new Hashtable<String, SeriesSeason>();
 	}
-	
-	//create JSON of Library
-	public boolean saveLibraryToFile(){
-		System.out.println("Saving Library to seriesTest.json...");
+
+	//get JSON of current library
+	public JSONObject getLibrary(){
 		JSONObject obj = new JSONObject();
 		Iterator<String> keys = getKeys();
 		boolean saveres = false; 
@@ -183,7 +182,14 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 			subObj.put("Episodes", jEps);
 			obj.put(key, subObj);
 		}
-
+		return obj;
+	}
+	
+	//create JSON of Library
+	public boolean saveLibraryToFile(){
+		System.out.println("Saving Library to seriesTest.json...");
+		
+		JSONObject obj = getLibrary(); 
 		
 		try {
 			FileWriter file = new FileWriter("seriesTest.json");//SAVE TO seriesTest.json

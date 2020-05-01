@@ -42,7 +42,7 @@ import org.json.JSONArray;
 
 public class SeriesLibrarySkeleton extends Object {
     private static final boolean debugOn = false; 
-    SeriesLibrary seriesLib;
+    ser321.assign6.ghli1.SeriesLibrary seriesLib;
 
     public SeriesLibrarySkeleton(SeriesLibrary lib){
         this.seriesLib = lib;
@@ -83,6 +83,10 @@ public class SeriesLibrarySkeleton extends Object {
               seriesLib.remove(ssName);
               result.put("result",true);
            }
+            else if(method.equals("getLibrary")){
+               JSONObject libJson = seriesLib.getLibrary();
+               result.put("result",libJson);
+            }
             else if(method.equals("getSeriesSeason")){
               String ssTitle = params.getString(0);
               debug("get SeriesSeason named: "+ssTitle);

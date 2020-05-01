@@ -77,6 +77,7 @@ TreeSelectionListener {
 		// 			"rmi://"+hostId+":"+regPort+"/SeriesLibrary");
 			this.sc = (SeriesSeasonTcpProxy)new SeriesSeasonTcpProxy(host, Integer.parseInt(port));
 			
+			
 					
 			// sets the value of 'author' on the title window of the GUI.
 			this.omdbKey = authorKey;
@@ -169,6 +170,7 @@ TreeSelectionListener {
 	 * getSubLabelled which is defined in the GUI/view class.
 	 **/
 	public void rebuildTree(){ //rebuilds the main library
+		this.slibrary = sc.getLibrary();
 		rebuildTree(slibrary);		
 	}
 	public void rebuildTree(SeriesLibrary pLib){ //builds library only used for search
@@ -341,14 +343,14 @@ TreeSelectionListener {
 		}else if(e.getActionCommand().equals("Save")) {
 			boolean savRes = false;
 			try {
-				slibrary.saveLibraryToFile();
+				sc.saveLibraryToFile();
 				savRes = true;
 			}
 			catch(Exception ess) {}
 			System.out.println("Save to server "+((savRes)?"successful":"failed")); //TODO implement that current library is saved to JSON file
 		}else if(e.getActionCommand().equals("Restore")) {
 			boolean resRes = false;
-			try { resRes=slibrary.restoreLibraryFromFile(); }
+			try { resRes=sc.restoreLibraryFromFile(); }
 			catch(Exception er) { er.printStackTrace(); }
 			rebuildTree();
 			System.out.println("Restore from server"+((resRes)?"successful":"failed")); // TODO: implement that tree is restored to library
@@ -356,7 +358,7 @@ TreeSelectionListener {
 		 // TODO: implement that the whole season with all episodes currently in tree will be added to library 
 			//All episodes from search Query is added		
 			try{
-				slibrary.addSeriesSeason(
+				sc.addSeriesSeason(
 				searchlibrary.getSeriesSeason(searchlibrary.getSeriesSeason().get(0))			
 			);
 			rebuildTree();
@@ -453,7 +455,7 @@ TreeSelectionListener {
 			
 			//Removes from main library the library that is currently the search result
 			try{
-				slibrary.removeSeriesSeason(
+				sc.removeSeriesSeason(
 					searchlibrary.getSeriesSeason().get(0)
 				);
 			}

@@ -33,6 +33,9 @@ public interface SeriesLibrary{
 	//returns the SeriesSeason object that corresponds to the key provided
 	public SeriesSeason getSeriesSeason(String title);
 
+	//Returns JSONObject of current library
+	public JSONObject getLibrary();
+
 	//Adds a SeriesSeason object to the aLib hash, using the "SHOW TITLE - SHOW SEASON" as key
 	public boolean addSeriesSeason(SeriesSeason seriesSeason);
 
