@@ -50,7 +50,7 @@ public class SeriesLibrarySkeleton extends Object {
 
     public void debug(String msg){
         if (debugOn) {
-            System.out.println("debug: "+message);
+            System.out.println("debug: "+msg);
         }
     }
 
