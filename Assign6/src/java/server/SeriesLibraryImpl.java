@@ -151,7 +151,7 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 			 }	
 		}
 		else{
-			SeriesLibraryImpl();
+			System.out.println("shouldn't be here");
 		}
 	}
 
