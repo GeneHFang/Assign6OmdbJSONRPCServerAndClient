@@ -104,8 +104,8 @@
             fork="yes">
          <arg value="${userId}"/> 
          <arg value="${omdbkey}"/>
-         <arg value="${hostId}"/>
-         <arg value="${regPort}"/> 
+         <arg value="${host}"/>
+         <arg value="${port}"/> 
          <classpath refid="compile.classpath"/>
       </java>
    </target>
@@ -113,7 +113,7 @@
    <target name="server" depends="build"
            description="execute java server">
       <java classname="ser321.assign6.ghli1.SeriesLibraryTCPJsonRPCServer" fork="yes">   
-         <arg value="${regPort}"/> 
+         <arg value="${port}"/> 
          <classpath refid="compile.classpath"/>
       </java>
    </target>
