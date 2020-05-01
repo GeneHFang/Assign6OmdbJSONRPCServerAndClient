@@ -40,7 +40,7 @@ import org.json.JSONArray;
 
 public class SeriesLibrarySkeleton extends Object {
     private static final boolean debugOn = false; 
-    ser321.assign6.ghli1.SeriesLibrary seriesLib;
+    SeriesLibrary seriesLib;
 
     public SeriesLibrarySkeleton(SeriesLibrary lib){
         this.seriesLib = lib;
