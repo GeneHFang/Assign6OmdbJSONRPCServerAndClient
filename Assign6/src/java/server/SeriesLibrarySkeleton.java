@@ -69,7 +69,8 @@ public class SeriesLibrarySkeleton extends Object {
 
            if(method.equals("addSeriesSeason")){
               System.out.println("before add");
-              JSONObject ss = params.getJSONObject(0);
+              String jsonString = params.getJSONObject(0);
+              JSONObject ss = new JSONObject(jsonString);
               //Might not work,  will have to do workaround if so.
               SeriesSeason toAdd = new SeriesSeason(ss);
               System.out.println("after add");
