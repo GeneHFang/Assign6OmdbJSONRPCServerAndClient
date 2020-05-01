@@ -84,7 +84,7 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 			this.plotSummary = (String)seriesObj.get("Plot");
 			this.rating = new Double((String)seriesObj.get("imdbRating"));			
 			
-			this.season = new Integer((String)seasonObj.get("Season"));
+			this.season = new Integer((String)seriesObj.get("Season"));
 			
 			this.episodes = eps;
 		}
