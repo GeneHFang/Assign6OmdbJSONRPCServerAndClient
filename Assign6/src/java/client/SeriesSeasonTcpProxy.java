@@ -56,7 +56,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         JSONObject theCall = new JSONObject();
         String ret = "{}";
         try{
-           debug("Request is: "+theCall.toString());
+           System.out.println("Request is: "+theCall.toString());
            theCall.put("method",method);
            theCall.put("id",id);
            theCall.put("jsonrpc","2.0");
