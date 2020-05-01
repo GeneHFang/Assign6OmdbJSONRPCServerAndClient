@@ -75,7 +75,7 @@ TreeSelectionListener {
 		try {
 		// 	this.slibrary = (SeriesLibrary) Naming.lookup(
 		// 			"rmi://"+hostId+":"+regPort+"/SeriesLibrary");
-			this.sc = (SeriesSeasonTcpProxy)new SeriesSeasonTcpProxy(host, Integer.parseInt(port));
+			this.sc = (SeriesSeasonTcpProxy)new SeriesSeasonTcpProxy(hostId, Integer.parseInt(regPort));
 			
 			
 					
