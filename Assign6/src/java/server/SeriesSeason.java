@@ -99,14 +99,14 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 
 		
 		//for each key of the SeriesSeason object serialize properties
-		obj.put("Title", this.title());
-		obj.put("Season", this.season());
-		obj.put("imdbRating", this.rating());
-		obj.put("Genre", this.genre());
-		obj.put("Poster", this.imgURL());
-		obj.put("Plot", this.plotSummary());
+		obj.put("Title", this.title);
+		obj.put("Season", this.season);
+		obj.put("imdbRating", this.rating);
+		obj.put("Genre", this.genre);
+		obj.put("Poster", this.imgURL);
+		obj.put("Plot", this.plotSummary);
 		//JSONArray eps = new JSONArray(this.Episodes().toArray());
-		ArrayList<Episode> epis = this.episodes();
+		ArrayList<Episode> epis = this.episodes;
 		JSONObject[] jEps = new JSONObject[epis.size()];
 		for (int i = 0; i < epis.size(); i++){
 			JSONObject s = new JSONObject();
