@@ -62,7 +62,8 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            theCall.put("jsonrpc","2.0");
            ArrayList<Object> al = new ArrayList();
            for (int i=0; i<params.length; i++){
-              al.add(params[i]);
+                System.out.println("Param is "+params[i].toString());
+                al.add(params[i]);
            }
            JSONArray paramsJson = new JSONArray(al);
            theCall.put("params",paramsJson);
