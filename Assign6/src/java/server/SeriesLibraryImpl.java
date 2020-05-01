@@ -3,8 +3,8 @@
 import java.io.*;
 import java.util.*;
 import java.net.URL;
-import java.rmi.server.*;
-import java.rmi.*;
+// import java.rmi.server.*;
+// import java.rmi.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONTokener;
@@ -262,29 +262,29 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 			dl.printStackTrace();
 		}
 		
-		System.out.println("Library restore "+(resRes ? "successful!" : "failed");
+		System.out.println("Library restore "+(resRes ? "successful!" : "failed"));
 		return resRes;
 	}
 
-	public static void main(String args[]){
-		try { 
-			String hostId="192.168.1.60";
-			String regPort="2020";
-			if(args.length >= 2){
-				hostId = args[0];
-				regPort = args[1];
-			}
+	// public static void main(String args[]){
+	// 	try { 
+	// 		String hostId="192.168.1.60";
+	// 		String regPort="2020";
+	// 		if(args.length >= 2){
+	// 			hostId = args[0];
+	// 			regPort = args[1];
+	// 		}
 
-			//Bind library object
-			SeriesLibrary obj = new SeriesLibraryImpl(true);
-			Naming.bind("rmi://"+hostId+":"+regPort+"/SeriesLibrary", obj);
-			System.out.println("Server bound in registry as: "+
-			"rmi://"+hostId+":"+regPort+"/SeriesLibrary");
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-	}
+	// 		//Bind library object
+	// 		SeriesLibrary obj = new SeriesLibraryImpl(true);
+	// 		Naming.bind("rmi://"+hostId+":"+regPort+"/SeriesLibrary", obj);
+	// 		System.out.println("Server bound in registry as: "+
+	// 		"rmi://"+hostId+":"+regPort+"/SeriesLibrary");
+	// 	}
+	// 	catch(Exception e){
+	// 		e.printStackTrace();
+	// 	}
+	// }
 
 
 }
