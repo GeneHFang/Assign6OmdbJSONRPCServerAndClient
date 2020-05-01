@@ -7,8 +7,6 @@ import java.io.*;
 import java.util.*;
 import org.json.JSONObject;
 
-import ser321.assign6.ghli1.SeriesLibrary;
-import ser321.assign6.ghli1.SeriesSeason;
 
 import org.json.JSONArray;
 
@@ -74,13 +72,13 @@ public class SeriesLibrarySkeleton extends Object {
               //Might not work,  will have to do workaround if so.
               SeriesSeason toAdd = new SeriesSeason(ss);
               debug("adding SeriesLibrary: "+toAdd.toJson().toString());
-              seriesLib.add(toAdd);
+              seriesLib.addSeriesSeason(toAdd);
               result.put("result",true);
            }
             else if(method.equals("removeSeriesSeason")){
               String ssName = params.getString(0);
               debug("removing SeriesSeason named "+ssName);
-              seriesLib.remove(ssName);
+              seriesLib.removeSeriesSeason(ssName);
               result.put("result",true);
            }
             else if(method.equals("getLibrary")){
@@ -98,7 +96,7 @@ public class SeriesLibrarySkeleton extends Object {
             debug("Saving library to Server.. ");
             result.put("result",res);
            }else if(method.equals("restoreLibraryFromFile")){
-            boolean res = seriesLib.restoreLibraryToFile();
+            boolean res = seriesLib.restoreLibraryFromFile();
             debug("Saving library to Server.. ");
             result.put("result",res);
            }else if(method.equals("getSeriesSeasons")){
