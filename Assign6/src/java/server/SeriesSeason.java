@@ -67,8 +67,8 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 					JSONObject jEp = epObjs.getJSONObject(i);
 					System.out.println("This is the episode: "+jEp.toString());
 					epTitle = jEp.getString("Title");
-					epNum = new Integer(jEp.getString("Episode"));
-					epRating = new Double(jEp.getString("imdbRating"));	
+					epNum = (jEp.getInt("Episode"));
+					epRating = (jEp.getDouble("imdbRating"));	
 				
 					Episode ep = new Episode(epTitle, epNum, epRating);
 					eps.add(ep);
@@ -80,9 +80,9 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 			this.genre = seriesObj.getString("Genre");
 			this.imgURL = seriesObj.getString("Poster");
 			this.plotSummary = seriesObj.getString("Plot");
-			this.rating = new Double(seriesObj.getString("imdbRating"));			
+			this.rating = (seriesObj.getDouble("imdbRating"));			
 			
-			this.season = new Integer(seriesObj.getString("Season"));
+			this.season = (seriesObj.getInt("Season"));
 			
 			this.episodes = eps;
 		}
