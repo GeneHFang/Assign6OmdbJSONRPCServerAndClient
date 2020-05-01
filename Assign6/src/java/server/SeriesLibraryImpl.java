@@ -45,6 +45,56 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 		this.aLib = new Hashtable<String,SeriesSeason>();
 	}
 
+	public boolean createNewFromJson(JSONObject series){
+		clears();
+		boolean ret = false;
+		Iterator<String> keys = series.keys();
+			
+			//create a SeriesSeason Object per JSONObject
+			while (keys.hasNext()){
+				String nodeTitle = keys.next();
+				JSONObject actual = series.optJSONObject(nodeTitle);
+				SeriesSeason sseason = new SeriesSeason();
+				JSONArray epObjs = actual.getJSONArray("Episodes");
+				ArrayList<Episode> eps = new ArrayList<>();
+				if (epObjs != null) {
+					for (int ik = 0 ; ik < epObjs.length(); ik++){
+						String epTitle;
+						int epNum;
+						double epRating;
+						JSONObject jEp = epObjs.getJSONObject(ik);
+						epTitle = (String)jEp.get("Title");
+							
+						epNum = new Integer(jEp.get("Episode").toString());
+						epRating = new Double(jEp.get("imdbRating").toString());
+					
+						Episode ep = new Episode(epTitle, epNum, epRating);
+						eps.add(ep);
+						
+					}			
+				}
+				sseason.setTitle((String)actual.get("Title"));
+				sseason.setGenre((String)actual.get("Genre"));
+				sseason.setImgURL((String)actual.get("Poster"));
+				sseason.setPlotSummary((String)actual.get("Plot"));
+				sseason.setRating(new Double(actual.get("imdbRating").toString()));			
+				sseason.setSeason(new Integer(actual.get("Season").toString()));
+				sseason.setEpisodes(eps);
+				
+				
+				try {
+					addSeriesSeason(sseason);
+					ret = true;
+				}
+				catch (Exception er) {
+					ret = false;
+					er.printStackTrace();
+				}
+				
+			}
+			return ret;
+	}
+
 	//constructor that is called first, populates user's current library seriesTest.json. If user has no JSON file saved, it will log to console informing user.
 	public SeriesLibraryImpl(boolean init){
 		super();
@@ -145,7 +195,7 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 		return this.aLib.keySet().iterator();	
 	}
 	
-	//unused method for resetting aLib object
+	//method for resetting aLib object
 	public void clears(){
 		this.aLib = new Hashtable<String, SeriesSeason>();
 	}
@@ -206,6 +256,7 @@ public class SeriesLibraryImpl extends Object implements SeriesLibrary{
 
 		
 	}
+
 
 	//REFACTORED - Restores from JSON file in server-side application's root directory, returns true if successful
 	public boolean restoreLibraryFromFile(){
