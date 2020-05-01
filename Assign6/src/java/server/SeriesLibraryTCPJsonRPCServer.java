@@ -68,7 +68,7 @@ public class SeriesLibraryTCPJsonRPCServer extends Thread{
 
     public static void main (String args[]) {
         Socket sock;
-        SeriesLibrary ss = new SeriesLibraryImpl();
+        SeriesLibrary ss = new SeriesLibraryImpl(true);
         int id=0;
         try {
            if (args.length != 1) {
