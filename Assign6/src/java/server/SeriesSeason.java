@@ -55,7 +55,7 @@ public class SeriesSeason extends Object implements java.io.Serializable {
 	public SeriesSeason(JSONObject json){
 		try{
 			JSONObject seriesObj = json;
-			JSONArray epObjs = new JSONArray(seriesObj.getString("Episodes"));
+			JSONArray epObjs = seriesObj.getJSONArray("Episodes");
 			
 			
 			ArrayList<Episode> eps = new ArrayList<>();
