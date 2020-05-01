@@ -56,21 +56,21 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         JSONObject theCall = new JSONObject();
         String ret = "{}";
         try{
-           System.out.println("Request is: "+theCall.toString());
-           theCall.put("method",method);
-           theCall.put("id",id);
-           theCall.put("jsonrpc","2.0");
-           ArrayList<Object> al = new ArrayList();
-           for (int i=0; i<params.length; i++){
+            theCall.put("method",method);
+            theCall.put("id",id);
+            theCall.put("jsonrpc","2.0");
+            ArrayList<Object> al = new ArrayList();
+            for (int i=0; i<params.length; i++){
                 System.out.println("Param is "+params[i].toString());
                 al.add(params[i]);
-           }
-           JSONArray paramsJson = new JSONArray(al);
-           theCall.put("params",paramsJson);
-           Socket sock = new Socket(host,port);
-           OutputStream os = sock.getOutputStream();
-           InputStream is = sock.getInputStream();
-           int numBytesReceived;
+            }
+            JSONArray paramsJson = new JSONArray(al);
+            theCall.put("params",paramsJson);
+            System.out.println("Request is: "+theCall.toString());
+            Socket sock = new Socket(host,port);
+            OutputStream os = sock.getOutputStream();
+            InputStream is = sock.getInputStream();
+            int numBytesReceived;
            int bufLen = 65536;
            String strToSend = theCall.toString();
            byte bytesReceived[] = new byte[buffSize];
