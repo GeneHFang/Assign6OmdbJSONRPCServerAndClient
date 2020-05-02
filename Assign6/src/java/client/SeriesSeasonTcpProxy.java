@@ -83,8 +83,8 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         String request = "";
            while (true){
             numBytesReceived = is.read(bytesReceived, i, bufLen-i);
-            request = request + new String(bytesReceived,0,numBytesReceived);
             if (numBytesReceived == -1) {break;}
+            request = request + new String(bytesReceived,0,numBytesReceived);
             i = i + numBytesReceived;
            } 
            ret = request;
@@ -94,7 +94,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            
            os.close();
            is.close();
-           TimeUnit.SECONDS.sleep(5);
+        //    TimeUnit.SECONDS.sleep(5);
            sock.close();
         }catch(Exception ex){
            System.out.println("exception in callMethod: "+ex.getMessage());
