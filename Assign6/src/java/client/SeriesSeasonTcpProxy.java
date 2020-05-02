@@ -80,11 +80,13 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            os.write(bytesToSend,0,bytesToSend.length);
         //    numBytesReceived = is.read(bytesReceived);
         int i = 0;
+        String request = "";
            while (numBytesReceived != -1){
-            numBytesReceived = is.read(bytesReceived, i, 1472);
+            numBytesReceived = is.read(bytesReceived, i, bufLen);
+            request = request + new String(bytesReceived,0,numBytesReceived);
             i = i + numBytesReceived;
            } 
-           ret = new String(bytesReceived,0,numBytesReceived);
+           ret = request;
            
            
            System.out.println("callMethod received from server: "+ret);
