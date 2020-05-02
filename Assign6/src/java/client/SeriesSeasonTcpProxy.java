@@ -85,7 +85,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            int totalBytesRead = 0;
            while(!end) {
                int currentBytesRead = is.read(bytesReceived);
-               if(currentBytesRead=-1) {
+               if(currentBytesRead==-1) {
                 end = true;
                  }
                totalBytesRead = currentBytesRead + totalBytesRead;
