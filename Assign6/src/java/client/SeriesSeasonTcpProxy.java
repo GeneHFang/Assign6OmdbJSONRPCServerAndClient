@@ -80,13 +80,12 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            os.write(bytesToSend,0,bytesToSend.length);
 
            byte[] bytesReceived = new byte[bufLen];
-           boolean end = false;
            StringBuilder dataString = new StringBuilder(bufLen);
            int totalBytesRead = 0;
-           while(!end) {
+           while(true) {
                int currentBytesRead = is.read(bytesReceived);
                if(currentBytesRead==-1) {
-                end = true;
+                break;
                  }
                totalBytesRead = currentBytesRead + totalBytesRead;
                if(totalBytesRead <= bufLen) {
