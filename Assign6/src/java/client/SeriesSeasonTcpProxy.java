@@ -80,22 +80,37 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            os.write(bytesToSend,0,bytesToSend.length);
 
            byte[] bytesReceived = new byte[bufLen];
-           StringBuilder dataString = new StringBuilder(bufLen);
+        //    StringBuilder dataString = new StringBuilder(bufLen);
            int totalBytesRead = 0;
-           while(true) {
-               int currentBytesRead = is.read(bytesReceived);
-               if(currentBytesRead==-1) {
-                break;
-                 }
-               totalBytesRead = currentBytesRead + totalBytesRead;
-               if(totalBytesRead <= bufLen) {
-                   dataString
-                     .append(new String(bytesReceived, 0, currentBytesRead));
-               } else {
-                   dataString
-                     .append(new String(bytesReceived, 0, bufLen - totalBytesRead + currentBytesRead));
-               }
-           }
+        
+           StringBuilder dataString = new StringBuilder();
+
+            int c;
+
+            while ( (( c = is.read(); ) >= 0) && (c != 0x0a /* <LF> */) ) {
+                if ( c != 0x0d /* <CR> */ ) {
+                    dataString.append( (char)c );
+                } else {
+                    // Ignore <CR>.
+                }
+            }
+
+
+
+           //    while(true) {
+        //        int currentBytesRead = is.read(bytesReceived);
+        //        if(currentBytesRead==-1) {
+        //         break;
+        //          }
+        //        totalBytesRead = currentBytesRead + totalBytesRead;
+        //        if(totalBytesRead <= bufLen) {
+        //            dataString
+        //              .append(new String(bytesReceived, 0, currentBytesRead));
+        //        } else {
+        //            dataString
+        //              .append(new String(bytesReceived, 0, bufLen - totalBytesRead + currentBytesRead));
+        //        }
+        //    }
 
            ret = dataString.toString();
 
