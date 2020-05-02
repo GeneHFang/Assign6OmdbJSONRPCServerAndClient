@@ -87,7 +87,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
 
             int c;
 
-            while ( (( c = is.read(); ) >= 0) && (c != 0x0a /* <LF> */) ) {
+            while ( (( c = is.read() ) >= 0) && (c != 0x0a /* <LF> */) ) {
                 if ( c != 0x0d /* <CR> */ ) {
                     dataString.append( (char)c );
                 } else {
