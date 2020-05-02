@@ -91,7 +91,7 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
                      .append(new String(bytesReceived, 0, bufLen - totalBytesRead + currentBytesRead, 
                      StandardCharsets.UTF_8));
                }
-               if(dataString.bufLen()>=bufLen) {
+               if(dataString.length()>=bufLen) {
                    end = true;
                }
            }
