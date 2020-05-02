@@ -38,7 +38,7 @@ import org.json.JSONArray;
 
 public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
     private static final boolean debugOn = false;
-    private static final int buffSize = 65536;
+    private static final int buffSize = 1024;
     private static int id = 0;
     private String host;
     private int port;
@@ -73,22 +73,45 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
             OutputStream os = sock.getOutputStream();
             InputStream is = sock.getInputStream();
             int numBytesReceived=0;
-           int bufLen = 65536;
+           int bufLen = 1024;
            String strToSend = theCall.toString();
-           byte bytesReceived[] = new byte[buffSize];
+
+           byte[] bytesReceived = new byte[bufLen];
+           boolean end = false;
+           StringBuilder dataString = new StringBuilder(bufLen);
+           int totalBytesRead = 0;
+           while(!end) {
+               int currentBytesRead = is.read(bytesReceived);
+               totalBytesRead = currentBytesRead + totalBytesRead;
+               if(totalBytesRead <= bufLen) {
+                   dataString
+                     .append(new String(bytesReceived, 0, currentBytesRead, StandardCharsets.UTF_8));
+               } else {
+                   dataString
+                     .append(new String(bytesReceived, 0, bufLen - totalBytesRead + currentBytesRead, 
+                     StandardCharsets.UTF_8));
+               }
+               if(dataString.bufLen()>=bufLen) {
+                   end = true;
+               }
+           }
+
+           ret = dataString.toString();
+
+        //    byte bytesReceived[] = new byte[buffSize];
            byte bytesToSend[] = strToSend.getBytes();
            os.write(bytesToSend,0,bytesToSend.length);
         //    numBytesReceived = is.read(bytesReceived);
-        int i = 0;
-        String request = "";
-           while (true){
-            numBytesReceived = is.read(bytesReceived, i, bufLen-i);
-            request = request + new String(bytesReceived);
-            TimeUnit.SECONDS.sleep(1);
-            if (numBytesReceived == -1) {break;}
-            i = i + numBytesReceived;
-           } 
-           ret = request;
+        // int i = 0;
+        // String request = "";
+        //    while (true){
+        //     numBytesReceived = is.read(bytesReceived, i, bufLen-i);
+        //     request = request + new String(bytesReceived);
+        //     TimeUnit.SECONDS.sleep(1);
+        //     if (numBytesReceived == -1) {break;}
+        //     i = i + numBytesReceived;
+        //    } 
+        //    ret = request;
            
            
            System.out.println("callMethod received from server: "+ret);
