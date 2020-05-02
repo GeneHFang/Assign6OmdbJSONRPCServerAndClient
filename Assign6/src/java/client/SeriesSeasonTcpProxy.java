@@ -81,8 +81,9 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
         //    numBytesReceived = is.read(bytesReceived);
         int i = 0;
         String request = "";
-           while (numBytesReceived != -1){
+           while (true){
             numBytesReceived = is.read(bytesReceived, i, bufLen);
+            if (numBytesReceived == -1) {break;}
             request = request + new String(bytesReceived,0,numBytesReceived);
             i = i + numBytesReceived;
            } 
