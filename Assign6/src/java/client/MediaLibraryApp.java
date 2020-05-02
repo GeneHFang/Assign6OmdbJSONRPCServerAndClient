@@ -354,7 +354,10 @@ TreeSelectionListener {
 			System.out.println("Save to server "+((savRes)?"successful":"failed")); //TODO implement that current library is saved to JSON file
 		}else if(e.getActionCommand().equals("Restore")) {
 			boolean resRes = false;
-			try { resRes=sc.restoreLibraryFromFile(); }
+			try { 
+				resRes=sc.restoreLibraryFromFile();
+				rebuildTree(); 
+			}
 			catch(Exception er) { 
 				System.out.println("Exception in restore!" +er.getMessage());
 			 }
