@@ -10,6 +10,7 @@
    <!-- CPP  properties -->
    <property name="obj.dir" value="obj"/>
    <property name="dist.dir" value="bin"/>
+   <property name="src.cpp.dir" value="src/cpp"/>
    
    <!-- Args -->
    <property name="host" value="127.0.0.1"/>
@@ -34,7 +35,7 @@
       <echo message="ostype is ${ostype}"/>
       <echo message="invoke java tcp server with: ant server -Dport=${port}"/>
       <echo message="invoke java client with: ant java.client -DuserId=${userID} -Domdbkey=${omdbkey} -Dhost=${host} -Dport=${port}"/>
-      <!-- <echo message="invoke cpp client with: ant cpp.client -DuserId=${userID} -Domdbkey=${omdbkey} -Dhost=${host} -Dport=${port}"/> -->
+      <echo message="invoke cpp client with: ant cpp.client -DuserId=${userID} -Domdbkey=${omdbkey} -Dhost=${host} -Dport=${port} [NOT WORKING]"/>
    </target>
 
     <!-- Package dependencies -->
@@ -60,7 +61,7 @@
 
    <target name="cpp.prepare">
       <mkdir dir="${dist.dir}"/>
-      <mkdir dir="${obj.dir"/>
+      <mkdir dir="${obj.dir}"/>
    </target>
 
   <target name="build" depends="prepare"
