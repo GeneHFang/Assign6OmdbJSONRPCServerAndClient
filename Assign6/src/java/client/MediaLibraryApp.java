@@ -355,7 +355,9 @@ TreeSelectionListener {
 		}else if(e.getActionCommand().equals("Restore")) {
 			boolean resRes = false;
 			try { resRes=sc.restoreLibraryFromFile(); }
-			catch(Exception er) { er.printStackTrace(); }
+			catch(Exception er) { 
+				System.out.println("Exception in restore!" +er.getMessage());
+			 }
 			rebuildTree();
 			System.out.println("Restore from server"+((resRes)?"successful":"failed")); // TODO: implement that tree is restored to library
 		}else if(e.getActionCommand().equals("Series-SeasonAdd")) {
