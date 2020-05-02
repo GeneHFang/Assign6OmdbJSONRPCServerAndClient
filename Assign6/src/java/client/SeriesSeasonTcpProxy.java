@@ -72,13 +72,13 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
             Socket sock = new Socket(host,port);
             OutputStream os = sock.getOutputStream();
             InputStream is = sock.getInputStream();
-            int numBytesReceived;
+            int numBytesReceived=0;
            int bufLen = 65536;
            String strToSend = theCall.toString();
            byte bytesReceived[] = new byte[buffSize];
            byte bytesToSend[] = strToSend.getBytes();
            os.write(bytesToSend,0,bytesToSend.length);
-           numBytesReceived = is.read(bytesReceived,0,bufLen);
+        //    numBytesReceived = is.read(bytesReceived,0,bufLen);
 
            while (numBytesReceived != -1){
             numBytesReceived = is.read(bytesReceived,0,bufLen);
