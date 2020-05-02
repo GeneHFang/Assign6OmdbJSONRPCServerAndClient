@@ -81,12 +81,12 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            numBytesReceived = is.read(bytesReceived,0,bufLen);
            ret = new String(bytesReceived,0,numBytesReceived);
            
-           TimeUnit.SECONDS.sleep(10);
-
+           
            System.out.println("callMethod received from server: "+ret);
-
+           
            os.close();
            is.close();
+           TimeUnit.SECONDS.sleep(5);
            sock.close();
         }catch(Exception ex){
            System.out.println("exception in callMethod: "+ex.getMessage());
