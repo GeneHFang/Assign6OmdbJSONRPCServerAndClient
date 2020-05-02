@@ -58,10 +58,10 @@
       <mkdir dir="${classes.dir}"/>
    </target>
 
-   <!-- <target name="cpp.prepare">
+   <target name="cpp.prepare">
       <mkdir dir="${dist.dir}"/>
       <mkdir dir="${obj.dir"/>
-   </target> -->
+   </target>
 
   <target name="build" depends="prepare"
            description="Compile Java sources">
@@ -77,7 +77,7 @@
       </javac>      
    </target>
 
-   <!-- <target name="cpp.build" depends="cpp.prepare" description="Compile C++ sources">
+   <target name="cpp.build" depends="cpp.prepare" description="Compile C++ sources">
       <cc outtype="executable" subsystem="console"
             outfile="${dist.dir}/cppSeriesLibrary"
             objdir="${obj.dir}">
@@ -89,14 +89,14 @@
             <libset dir="/usr/local/lib" libs="curlpp"/>
             <fileset dir="${src.cpp.dir}/client/" includes="MediaClientGui.cpp, SeriesSeason.cpp, Episode.cpp, MediaLibrary.cpp,samplemain.cpp"/>
       </cc>
-   </target> -->
-   <!--    
+   </target> 
+
    <target name="cpp.client" depends="cpp.build">
-     <echo message="./bin/cppSeriesLibrary ${userId} ${omdbkey}"/>
+     <echo message="./bin/cppSeriesLibrary ${userId} ${omdbkey} ${host} ${port}"/>
      <exec executable="./bin/cppSeriesLibrary">
-       <arg line= "${userId} ${omdbkey}"/>
+       <arg line= "${userId} ${omdbkey} ${host} ${port}"/>
      </exec>
-   </target> -->
+   </target>
 
    <target name="java.client" depends="build"
            description="execute java client">
