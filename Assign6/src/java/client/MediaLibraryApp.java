@@ -435,6 +435,12 @@ TreeSelectionListener {
 				
 				//Builds temporary tree from search results. If failed, rebuilds tree from saved library
 				try {
+					seriesSeasonJTF.setText(title); 
+					genreJTF.setText(genre); 
+					ratingJTF.setText(rating+""); 
+					episodeJTF.setText("");
+					summaryJTA.setText(plotSummary);
+					setAlbumImage(imgURL);
 					searchlibrary = new SeriesLibraryImpl();
 					searchlibrary.addSeriesSeason(ss);
 					rebuildTree(searchlibrary);
