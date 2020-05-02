@@ -75,6 +75,9 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
             int numBytesReceived=0;
            int bufLen = 1024;
            String strToSend = theCall.toString();
+           
+           byte bytesToSend[] = strToSend.getBytes();
+           os.write(bytesToSend,0,bytesToSend.length);
 
            byte[] bytesReceived = new byte[bufLen];
            boolean end = false;
@@ -98,8 +101,6 @@ public class SeriesSeasonTcpProxy extends Object implements SeriesLibrary {
            ret = dataString.toString();
 
         //    byte bytesReceived[] = new byte[buffSize];
-           byte bytesToSend[] = strToSend.getBytes();
-           os.write(bytesToSend,0,bytesToSend.length);
         //    numBytesReceived = is.read(bytesReceived);
         // int i = 0;
         // String request = "";
